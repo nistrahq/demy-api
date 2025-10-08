@@ -2,6 +2,7 @@ package com.nistra.demy.platform.institution.domain.model.commands;
 
 import com.nistra.demy.platform.institution.domain.model.valueobjects.AcademyDescription;
 import com.nistra.demy.platform.institution.domain.model.valueobjects.AcademyName;
+import com.nistra.demy.platform.institution.domain.model.valueobjects.AdministratorId;
 import com.nistra.demy.platform.institution.domain.model.valueobjects.Ruc;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.EmailAddress;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.PhoneNumber;
@@ -23,7 +24,8 @@ public record RegisterAcademyCommand(
         StreetAddress streetAddress,
         EmailAddress emailAddress,
         PhoneNumber phoneNumber,
-        Ruc ruc
+        Ruc ruc,
+        AdministratorId administratorId
 ) {
     /**
      * Constructs a RegisterAcademyCommand with validation.
@@ -49,5 +51,7 @@ public record RegisterAcademyCommand(
             throw new IllegalArgumentException("PhoneNumber cannot be null");
         if (ruc == null)
             throw new IllegalArgumentException("Ruc cannot be null");
+        if (administratorId == null)
+            throw new IllegalArgumentException("AdministratorId cannot be null");
     }
 }

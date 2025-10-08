@@ -30,7 +30,8 @@ public record RegisterAcademyResource(
         String emailAddress,
         String countryCode,
         String phone,
-        String ruc
+        String ruc,
+        Long administratorId
 ) {
     /**
      * Validates the fields of the RegisterAcademyResource.
@@ -58,5 +59,7 @@ public record RegisterAcademyResource(
             throw new IllegalArgumentException("Phone number is required");
         if (ruc == null || ruc.isBlank())
             throw new IllegalArgumentException("RUC is required");
+        if (administratorId == null || administratorId <= 0)
+            throw new IllegalArgumentException("Administrator ID must be a positive number");
     }
 }
