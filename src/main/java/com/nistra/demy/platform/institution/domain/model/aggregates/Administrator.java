@@ -41,13 +41,12 @@ public class Administrator extends AuditableAbstractAggregateRoot<Administrator>
             PersonName personName,
             PhoneNumber phoneNumber,
             DniNumber dniNumber,
-            AcademyId academyId,
             UserId userId
     ) {
         this.personName = personName;
         this.phoneNumber = phoneNumber;
         this.dniNumber = dniNumber;
-        this.academyId = academyId;
+        this.academyId = new AcademyId();
         this.userId = userId;
     }
 
@@ -56,7 +55,6 @@ public class Administrator extends AuditableAbstractAggregateRoot<Administrator>
                 command.personName(),
                 command.phoneNumber(),
                 command.dniNumber(),
-                command.academyId(),
                 command.userId()
         );
     }
