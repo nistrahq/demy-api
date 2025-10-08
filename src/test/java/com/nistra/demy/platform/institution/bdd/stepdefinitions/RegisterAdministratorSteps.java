@@ -12,8 +12,6 @@ import com.nistra.demy.platform.shared.domain.model.valueobjects.*;
 
 public class RegisterAdministratorSteps {
 
-    private RegisterAdministratorCommand command;
-    private Administrator administrator;
     private int responseStatus;
     private String responseMessage;
 
@@ -28,7 +26,7 @@ public class RegisterAdministratorSteps {
         Map<String, String> data = dataTable.asMaps().getFirst();
 
         try {
-            command = new RegisterAdministratorCommand(
+            RegisterAdministratorCommand command = new RegisterAdministratorCommand(
                     new PersonName(data.get("firstName"), data.get("lastName")),
                     new PhoneNumber(data.get("phoneCountryCode"), data.get("phoneNumber")),
                     new DniNumber(data.get("dniNumber")),
@@ -36,7 +34,7 @@ public class RegisterAdministratorSteps {
                     new UserId()
             );
 
-            administrator = new Administrator(command);
+            Administrator administrator = new Administrator(command);
             administrator.registerAdministrator(command.academyId().academyId(), command.userId().userId());
 
             responseStatus = 201;
