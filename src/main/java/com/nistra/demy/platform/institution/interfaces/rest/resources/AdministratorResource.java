@@ -21,6 +21,7 @@ public record AdministratorResource(
         String lastName,
         String phoneNumber,
         String dniNumber,
-        Long academyId
+        Long academyId,
+        Long userId
 ) {
 }

@@ -7,6 +7,7 @@ import com.nistra.demy.platform.institution.domain.model.valueobjects.Administra
 import com.nistra.demy.platform.institution.domain.services.AcademyCommandService;
 import com.nistra.demy.platform.institution.infrastructure.persistence.jpa.repositories.AcademyRepository;
 import com.nistra.demy.platform.institution.infrastructure.persistence.jpa.repositories.AdministratorRepository;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +67,7 @@ public class AcademyCommandServiceImpl implements AcademyCommandService {
             administrator.registerAdministrator(academy.getId(), administrator.getUserId().userId());
             administratorRepository.save(administrator);
             academy.assignAdministrator(new AdministratorId(administrator.getId()));
+            administrator.associateAcademy(new AcademyId(academy.getId()));
             academyRepository.save(academy);
             return Optional.of(academy);
         } catch (Exception e) {

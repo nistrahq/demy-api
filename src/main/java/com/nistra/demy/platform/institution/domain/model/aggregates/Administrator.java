@@ -63,6 +63,14 @@ public class Administrator extends AuditableAbstractAggregateRoot<Administrator>
         this.addDomainEvent(new AdministratorRegisteredEvent(this, academyId, userId));
     }
 
+    public void associateAcademy(AcademyId academyId) {
+        if (this.academyId == null || this.academyId.academyId() == 0) {
+            this.academyId = academyId;
+        } else {
+            throw new IllegalStateException("Administrator is already associated with an academy.");
+        }
+    }
+
     public void disassociateAcademy(AcademyId academyId) {
         if (this.academyId != null && this.academyId.equals(academyId)) {
             this.academyId = new AcademyId();
