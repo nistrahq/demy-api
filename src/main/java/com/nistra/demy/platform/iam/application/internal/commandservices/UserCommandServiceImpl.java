@@ -74,12 +74,13 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
-    public boolean handle(VerifyUserCommand command) {
+    public Optional<ImmutablePair<User, String>> handle(VerifyUserCommand command) {
         var user = userRepository.findByEmailAddress(new EmailAddress(command.email()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.verifyUser(command.code());
         userRepository.save(user);
-        return true;
+        var token = tokenService.generateToken(user.getEmailAddress().email());
+        return Optional.of(ImmutablePair.of(user, token));
     }
 
     @Override

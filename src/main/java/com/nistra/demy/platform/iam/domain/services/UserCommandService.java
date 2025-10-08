@@ -12,7 +12,7 @@ public interface UserCommandService {
 
     Optional<User> handle(SignUpCommand command);
 
-    boolean handle(VerifyUserCommand command);
+    Optional<ImmutablePair<User, String>> handle(VerifyUserCommand command);
 
     boolean handle(ResendVerificationCodeCommand command);
 
