@@ -17,13 +17,13 @@ public class NotificationEmailServiceImpl implements UserNotificationEmailServic
 
     @Override
     public void sendVerificationEmail(String to, String code, int expirationMinutes) {
-        sendTemplatedEmail(to, "Confirm your Demy account", "email/verification-email",
+        sendTemplatedEmail(to, "Confirma tu cuenta de Demy", "es/email/verification-email",
                 Map.of("code", code, "expirationMinutes", expirationMinutes));
     }
 
     @Override
     public void sendPasswordResetEmail(String to, String resetLink) {
-        sendTemplatedEmail(to, "Recover your password", "email/reset-password-email",
+        sendTemplatedEmail(to, "Recupera tu contraseña", "es/email/reset-password-email",
                 Map.of("resetLink", resetLink));
     }
 
