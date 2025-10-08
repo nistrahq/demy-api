@@ -78,14 +78,16 @@ public class Academy extends AuditableAbstractAggregateRoot<Academy> {
                    StreetAddress streetAddress,
                    EmailAddress emailAddress,
                    PhoneNumber phoneNumber,
-                   Ruc ruc) {
+                   Ruc ruc,
+                   AdministratorId administratorId
+    ) {
         this.academyName = academyName;
         this.academyDescription = academyDescription;
         this.streetAddress = streetAddress;
         this.emailAddress = emailAddress;
         this.phoneNumber = phoneNumber;
         this.ruc = ruc;
-        this.administratorId = new AdministratorId();
+        this.administratorId = administratorId;
     }
 
     /**
@@ -101,13 +103,12 @@ public class Academy extends AuditableAbstractAggregateRoot<Academy> {
                 command.streetAddress(),
                 command.emailAddress(),
                 command.phoneNumber(),
-                command.ruc()
+                command.ruc(),
+                command.administratorId()
         );
     }
 
     public void assignAdministrator(AdministratorId administratorId) {
-        if (this.administratorId != null && this.administratorId.isAssigned())
-            throw new IllegalStateException("Administrator is already assigned to this academy");
         this.administratorId = administratorId;
     }
 }

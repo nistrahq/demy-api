@@ -1,11 +1,12 @@
 package com.nistra.demy.platform.institution.interfaces.rest.controllers;
 
 import com.nistra.demy.platform.institution.domain.services.AdministratorCommandService;
+import com.nistra.demy.platform.institution.interfaces.rest.resources.AdministratorResource;
 import com.nistra.demy.platform.institution.interfaces.rest.resources.RegisterAdministratorResource;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.AdministratorResourceFromEntityAssembler;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.RegisterAdministratorCommandFromResourceAssembler;
-import com.nistra.demy.platform.shared.interfaces.rest.resources.MessageResource;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,12 +27,12 @@ public class AdministratorsController {
     }
 
     @PostMapping
-    public ResponseEntity<MessageResource> registerAdministrator(@RequestBody RegisterAdministratorResource resource) {
+    public ResponseEntity<AdministratorResource> registerAdministrator(@RequestBody RegisterAdministratorResource resource) {
         var registerAdministratorCommand = RegisterAdministratorCommandFromResourceAssembler.toCommandFromResource(resource);
         var administrator = administratorCommandService.handle(registerAdministratorCommand);
         if (administrator.isEmpty()) return ResponseEntity.badRequest().build();
         var administratorEntity = administrator.get();
         var administratorResource = AdministratorResourceFromEntityAssembler.toResourceFromEntity(administratorEntity);
-        return ResponseEntity.ok(new MessageResource("Administrator registered successfully"));
+        return new ResponseEntity<>(administratorResource, HttpStatus.CREATED);
     }
 }
