@@ -3,9 +3,13 @@ package com.nistra.demy.platform.institution.application.internal.commandservice
 import com.nistra.demy.platform.institution.domain.model.aggregates.Academy;
 import com.nistra.demy.platform.institution.domain.model.commands.AssignAdministratorToAcademyCommand;
 import com.nistra.demy.platform.institution.domain.model.commands.RegisterAcademyCommand;
+import com.nistra.demy.platform.institution.domain.model.valueobjects.AdministratorId;
 import com.nistra.demy.platform.institution.domain.services.AcademyCommandService;
 import com.nistra.demy.platform.institution.infrastructure.persistence.jpa.repositories.AcademyRepository;
+import com.nistra.demy.platform.institution.infrastructure.persistence.jpa.repositories.AdministratorRepository;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -24,14 +28,19 @@ import java.util.Optional;
 public class AcademyCommandServiceImpl implements AcademyCommandService {
 
     private final AcademyRepository academyRepository;
+    private final AdministratorRepository administratorRepository;
 
     /**
      * Constructs an instance of the class.
      *
      * @param academyRepository the repository used for academy persistence operations
      */
-    public AcademyCommandServiceImpl(AcademyRepository academyRepository) {
+    public AcademyCommandServiceImpl(
+            AcademyRepository academyRepository,
+            AdministratorRepository administratorRepository
+    ) {
         this.academyRepository = academyRepository;
+        this.administratorRepository = administratorRepository;
     }
 
     /**
@@ -44,6 +53,7 @@ public class AcademyCommandServiceImpl implements AcademyCommandService {
      * @see RegisterAcademyCommand
      */
     @Override
+    @Transactional
     public Optional<Academy> handle(RegisterAcademyCommand command) {
         if (academyRepository.existsByEmailAddress(command.emailAddress()))
             throw new IllegalArgumentException("An academy with email %s already exists".formatted(command.emailAddress().email()));
@@ -51,6 +61,13 @@ public class AcademyCommandServiceImpl implements AcademyCommandService {
             throw new IllegalArgumentException("An academy with RUC %s already exists".formatted(command.ruc().ruc()));
         var academy = new Academy(command);
         try {
+            academyRepository.save(academy);
+            var administrator = administratorRepository.findById(command.administratorId().administratorId())
+                            .orElseThrow(() -> new IllegalArgumentException("No administrator found with id " + command.administratorId().administratorId()));
+            administrator.registerAdministrator(academy.getId(), administrator.getUserId().userId());
+            administratorRepository.save(administrator);
+            academy.assignAdministrator(new AdministratorId(administrator.getId()));
+            administrator.associateAcademy(new AcademyId(academy.getId()));
             academyRepository.save(academy);
             return Optional.of(academy);
         } catch (Exception e) {

@@ -11,7 +11,8 @@ public class AdministratorResourceFromEntityAssembler {
                 entity.getPersonName().lastName(),
                 entity.getPhoneNumber().getFullNumber(),
                 entity.getDniNumber().dniNumber(),
-                entity.getAcademyId().academyId()
+                entity.getAcademyId().academyId(),
+                entity.getUserId().userId()
         );
     }
 }

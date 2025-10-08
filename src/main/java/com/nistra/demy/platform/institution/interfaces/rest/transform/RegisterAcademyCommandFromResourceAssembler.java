@@ -3,6 +3,7 @@ package com.nistra.demy.platform.institution.interfaces.rest.transform;
 import com.nistra.demy.platform.institution.domain.model.commands.RegisterAcademyCommand;
 import com.nistra.demy.platform.institution.domain.model.valueobjects.AcademyDescription;
 import com.nistra.demy.platform.institution.domain.model.valueobjects.AcademyName;
+import com.nistra.demy.platform.institution.domain.model.valueobjects.AdministratorId;
 import com.nistra.demy.platform.institution.domain.model.valueobjects.Ruc;
 import com.nistra.demy.platform.institution.interfaces.rest.resources.RegisterAcademyResource;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.EmailAddress;
@@ -25,7 +26,8 @@ public class RegisterAcademyCommandFromResourceAssembler {
                         resource.countryCode(),
                         resource.phone()
                 ),
-                new Ruc(resource.ruc())
+                new Ruc(resource.ruc()),
+                new AdministratorId(resource.administratorId())
         );
     }
 }

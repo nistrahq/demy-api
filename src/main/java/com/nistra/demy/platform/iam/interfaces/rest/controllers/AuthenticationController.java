@@ -58,10 +58,14 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<MessageResource> verify(@RequestBody VerifyUserResource verifyUserResource) {
+    public ResponseEntity<VerifiedUserResource> verify(@RequestBody VerifyUserResource verifyUserResource) {
         var verifyUserCommand = VerifyUserCommandFromResourceAssembler.toCommandFromResource(verifyUserResource);
-        userCommandService.handle(verifyUserCommand);
-        return ResponseEntity.ok(new MessageResource("User verified successfully!"));
+        var verifiedUser = userCommandService.handle(verifyUserCommand);
+        if (verifiedUser.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        var verifiedUserResource = VerifiedUserResourceFromEntityAssembler.toResourceFromEntity(verifiedUser.get().getLeft(), verifiedUser.get().getRight());
+        return ResponseEntity.ok(verifiedUserResource);
     }
 
     @PostMapping("/resend-code")

@@ -7,7 +7,6 @@ public record RegisterAdministratorCommand(
         PersonName personName,
         PhoneNumber phoneNumber,
         DniNumber dniNumber,
-        AcademyId academyId,
         UserId userId
 ) {
     public RegisterAdministratorCommand {
@@ -17,8 +16,6 @@ public record RegisterAdministratorCommand(
             throw new IllegalArgumentException("Phone number cannot be null");
         if (dniNumber == null)
             throw new IllegalArgumentException("DNI number cannot be null");
-        if (academyId == null)
-            throw new IllegalArgumentException("Academy ID cannot be null");
         if (userId == null)
             throw new IllegalArgumentException("User ID cannot be null");
     }
