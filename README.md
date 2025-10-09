@@ -100,5 +100,4 @@ More details in: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
 This is an **academic and private** project, developed by the Software Engineering team – UPC.  
 External contributions are not accepted.
 
-
 ---
