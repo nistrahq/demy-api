@@ -1,4 +1,4 @@
-package com.nistra.demy.platform.institution.application.internal.outboundservices.acl;
+package com.nistra.demy.platform.enrollment.application.internal.outboundservices.acl;
 
 import com.nistra.demy.platform.iam.interfaces.acl.IamContextFacade;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-@Service("institutionExternalIamService")
+@Service("enrollmentExternalIamService")
 public class ExternalIamService {
 
     private final IamContextFacade iamContextFacade;
