@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-@Service
+@Service("institutionExternalIamService")
 public class ExternalIamService {
 
     private final IamContextFacade iamContextFacade;
