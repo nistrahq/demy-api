@@ -3,7 +3,7 @@
 This repository contains the **backend API** of the **Demy** project, developed in **Java 21 with Spring Boot**.  
 The goal is to provide RESTful services for user management, authentication, and functionalities related to the academic project.
 
----
+----
 
 ## Quick Start
 
