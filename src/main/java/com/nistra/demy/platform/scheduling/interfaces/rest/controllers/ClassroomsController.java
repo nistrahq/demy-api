@@ -88,9 +88,9 @@ public class ClassroomsController {
     public ResponseEntity<List<ClassroomResource>> getAllClassrooms() {
         var getAllClassroomsQuery = new GetAllClassroomsQuery();
         var classrooms = classroomQueryService.handle(getAllClassroomsQuery);
-        if (classrooms.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+//        if (classrooms.isEmpty()) {
+//            return ResponseEntity.notFound().build();
+//        }
         var classroomResources = classrooms.stream()
                 .map(ClassroomResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
