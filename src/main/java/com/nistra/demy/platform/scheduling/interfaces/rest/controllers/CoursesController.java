@@ -87,9 +87,9 @@ public class CoursesController {
     public ResponseEntity<List<CourseResource>> getAllCourses() {
         var getAllCoursesQuery = new GetAllCoursesQuery();
         var courses = courseQueryService.handle(getAllCoursesQuery);
-        if (courses.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+//        if (courses.isEmpty()) {
+//            return ResponseEntity.notFound().build();
+//        }
         var courseResources = courses.stream()
                 .map(CourseResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
