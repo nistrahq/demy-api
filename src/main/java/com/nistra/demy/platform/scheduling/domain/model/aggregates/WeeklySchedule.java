@@ -4,10 +4,8 @@ import com.nistra.demy.platform.scheduling.domain.model.commands.CreateWeeklySch
 import com.nistra.demy.platform.scheduling.domain.model.entities.Schedule;
 import com.nistra.demy.platform.scheduling.domain.model.valueobjects.DayOfWeek;
 import com.nistra.demy.platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -19,6 +17,9 @@ public class WeeklySchedule extends AuditableAbstractAggregateRoot<WeeklySchedul
 
     private String name;
 
+    @Embedded
+    private AcademyId academyId;
+
     @OneToMany(mappedBy = "weeklySchedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Schedule> schedules;
 
@@ -28,23 +29,26 @@ public class WeeklySchedule extends AuditableAbstractAggregateRoot<WeeklySchedul
     public WeeklySchedule() {
         this.name = "";
         this.schedules = new ArrayList<>();
+        this.academyId = new AcademyId();
     }
 
     /**
      * Constructor with name
      * @param name Weekly schedule name
      */
-    public WeeklySchedule(String name) {
+    public WeeklySchedule(String name, AcademyId academyId) {
         this.name = name;
         this.schedules = new ArrayList<>();
+        this.academyId = academyId;
     }
 
     /**
      * Constructor with command
      * @param command Create weekly schedule command
      */
-    public WeeklySchedule(CreateWeeklyScheduleCommand command) {
+    public WeeklySchedule(CreateWeeklyScheduleCommand command, AcademyId academyId) {
         this.name = command.name();
+        this.academyId = academyId;
         this.schedules = new ArrayList<>();
     }
 
