@@ -1,5 +1,6 @@
 package com.nistra.demy.platform.scheduling.application.internal.queryservices;
 
+import com.nistra.demy.platform.institution.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.scheduling.domain.model.aggregates.Classroom;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetAllClassroomsQuery;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetClassroomByIdQuery;
@@ -18,13 +19,15 @@ import java.util.Optional;
 public class ClassroomQueryServiceImpl implements ClassroomQueryService {
 
     private final ClassroomRepository classroomRepository;
+    private final ExternalIamService externalIamService;
 
     /**
      * Constructor that initializes the service with the required repository.
      * @param classroomRepository The classroom repository.
      */
-    public ClassroomQueryServiceImpl(ClassroomRepository classroomRepository) {
+    public ClassroomQueryServiceImpl(ClassroomRepository classroomRepository, ExternalIamService externalIamService) { // [MODIFICADO]
         this.classroomRepository = classroomRepository;
+        this.externalIamService = externalIamService; // Inyectar ACL
     }
 
     /**
@@ -36,7 +39,10 @@ public class ClassroomQueryServiceImpl implements ClassroomQueryService {
      */
     @Override
     public List<Classroom> handle(GetAllClassroomsQuery query) {
-        return classroomRepository.findAll();
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
+
+        return classroomRepository.findAllByAcademyId(academyId);
     }
 
     /**
@@ -48,6 +54,10 @@ public class ClassroomQueryServiceImpl implements ClassroomQueryService {
      */
     @Override
     public Optional<Classroom> handle(GetClassroomByIdQuery query) {
-        return classroomRepository.findById(query.classroomId());
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
+
+        return classroomRepository.findById(query.classroomId())
+                .filter(classroom -> classroom.getAcademyId().equals(academyId));
     }
 }
