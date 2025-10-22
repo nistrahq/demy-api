@@ -89,9 +89,9 @@ public class WeeklySchedulesController {
         var getAllWeeklySchedulesQuery = new GetAllWeeklySchedulesQuery();
         var schedules = weeklyScheduleQueryService.handle(getAllWeeklySchedulesQuery); // Variable Renombrada
 
-        if (schedules.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+//        if (schedules.isEmpty()) {
+//            return ResponseEntity.notFound().build();
+//        }
 
         var scheduleResources = schedules.stream() // Variable Renombrada
                 .map(WeeklyScheduleResourceFromEntityAssembler::toResourceFromEntity)
