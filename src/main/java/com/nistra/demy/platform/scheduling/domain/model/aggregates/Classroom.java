@@ -4,6 +4,7 @@ import com.nistra.demy.platform.institution.domain.model.valueobjects.UserId;
 import com.nistra.demy.platform.scheduling.domain.model.commands.CreateClassroomCommand;
 import com.nistra.demy.platform.scheduling.domain.model.commands.UpdateClassroomCommand;
 import com.nistra.demy.platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import lombok.Getter;
@@ -20,7 +21,8 @@ public class Classroom extends AuditableAbstractAggregateRoot<Classroom> {
     private String code;
     private Integer capacity;
     private String campus;
-
+    @Embedded
+    private AcademyId academyId;
 
 
     /**
@@ -31,6 +33,7 @@ public class Classroom extends AuditableAbstractAggregateRoot<Classroom> {
         this.code = Strings.EMPTY;
         this.capacity = Integer.valueOf(0);
         this.campus = Strings.EMPTY;
+        this.academyId = new AcademyId();
     }
 
     /**
@@ -39,20 +42,22 @@ public class Classroom extends AuditableAbstractAggregateRoot<Classroom> {
      * @param capacity the classroom capacity
      * @param campus the campus name
      */
-    public Classroom(String code, Integer capacity, String campus) {
+    public Classroom(String code, Integer capacity, String campus, AcademyId academyId) {
         this.code = code;
         this.capacity = capacity;
         this.campus = campus;
+        this.academyId = academyId;
     }
 
     /**
      * Constructs a Classroom using a CreateClassroomCommand.
      * @param command the command containing classroom creation data
      */
-    public Classroom(CreateClassroomCommand command) {
+    public Classroom(CreateClassroomCommand command, AcademyId academyId) {
         this.code = command.code();
         this.capacity = command.capacity();
         this.campus = command.campus();
+        this.academyId = academyId;
     }
 
     /**
