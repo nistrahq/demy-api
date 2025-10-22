@@ -1,5 +1,6 @@
 package com.nistra.demy.platform.scheduling.application.internal.commandservices;
 
+import com.nistra.demy.platform.institution.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.scheduling.domain.model.aggregates.Course;
 import com.nistra.demy.platform.scheduling.domain.model.commands.CreateCourseCommand;
 import com.nistra.demy.platform.scheduling.domain.model.commands.DeleteCourseCommand;
@@ -18,13 +19,15 @@ import java.util.Optional;
 public class CourseCommandServiceImpl implements CourseCommandService {
 
     private final CourseRepository courseRepository;
+    private final ExternalIamService externalIamService;
 
     /**
      * Constructor that initializes the service with the required repository.
      * @param courseRepository The course repository.
      */
-    public CourseCommandServiceImpl(CourseRepository courseRepository) {
+    public CourseCommandServiceImpl(CourseRepository courseRepository, ExternalIamService externalIamService) {
         this.courseRepository = courseRepository;
+        this.externalIamService = externalIamService;
     }
 
     /**
@@ -37,11 +40,14 @@ public class CourseCommandServiceImpl implements CourseCommandService {
      */
     @Override
     public Long handle(CreateCourseCommand command) {
-        if (courseRepository.existsByName(command.name())) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
+
+        if (courseRepository.existsByNameAndAcademyId(command.name(),academyId)) {
             throw new IllegalArgumentException("Course with code " + command.name() + " already exists");
         }
 
-        var course = new Course(command);
+        var course = new Course(command,academyId);
         try {
             courseRepository.save(course);
         } catch (Exception e) {
@@ -60,8 +66,10 @@ public class CourseCommandServiceImpl implements CourseCommandService {
      */
     @Override
     public Optional<Course> handle(UpdateCourseCommand command) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
 
-        if (courseRepository.existsByNameAndIdNot(command.name(), command.courseId())) {
+        if (courseRepository.existsByNameAndIdNotAndAcademyId(command.name(), command.courseId(), academyId)) {
             throw new IllegalArgumentException("Course with name " + command.name() + " already exists");
         }
 
@@ -71,6 +79,10 @@ public class CourseCommandServiceImpl implements CourseCommandService {
         }
 
         var courseToUpdate = result.get();
+
+        if (!courseToUpdate.getAcademyId().equals(academyId)) {
+            throw new IllegalArgumentException("Course with id " + command.courseId() + " does not belong to the current academy");
+        }
         try {
             var updatedCourse = courseRepository.save(courseToUpdate.updateCourse(command));
             return Optional.of(updatedCourse);
@@ -88,9 +100,16 @@ public class CourseCommandServiceImpl implements CourseCommandService {
      */
     @Override
     public void handle(DeleteCourseCommand command) {
-        if (!courseRepository.existsById(command.courseId())) {
-            throw new IllegalArgumentException("Course with id " + command.courseId() + " not found");
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
+
+        var course = courseRepository.findById(command.courseId())
+                .orElseThrow(() -> new IllegalArgumentException("Course with id " + command.courseId() + " not found"));
+
+        if (!course.getAcademyId().equals(academyId)) {
+            throw new IllegalArgumentException("Course with id " + command.courseId() + " does not belong to the current academy");
         }
+
         try {
             courseRepository.deleteById(command.courseId());
         } catch (Exception e) {

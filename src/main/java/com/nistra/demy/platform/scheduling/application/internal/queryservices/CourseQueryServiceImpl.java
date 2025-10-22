@@ -1,5 +1,8 @@
 package com.nistra.demy.platform.scheduling.application.internal.queryservices;
 
+import com.nistra.demy.platform.iam.interfaces.acl.IamContextFacade;
+import com.nistra.demy.platform.institution.application.internal.outboundservices.acl.ExternalIamService;
+import com.nistra.demy.platform.scheduling.application.internal.outboundservices.acl.ExternalInstitutionService;
 import com.nistra.demy.platform.scheduling.domain.model.aggregates.Course;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetAllCoursesQuery;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetCourseByIdQuery;
@@ -18,13 +21,15 @@ import java.util.Optional;
 public class CourseQueryServiceImpl implements CourseQueryService {
 
     private final CourseRepository courseRepository;
+    private final ExternalIamService externalIamService;
 
     /**
      * Constructor that initializes the service with the required repository.
      * @param courseRepository The course repository.
      */
-    public CourseQueryServiceImpl(CourseRepository courseRepository) {
+    public CourseQueryServiceImpl(CourseRepository courseRepository, ExternalIamService externalIamService) {
         this.courseRepository = courseRepository;
+        this.externalIamService = externalIamService;
     }
 
     /**
@@ -36,7 +41,10 @@ public class CourseQueryServiceImpl implements CourseQueryService {
      */
     @Override
     public List<Course> handle(GetAllCoursesQuery query) {
-        return courseRepository.findAll();
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
+
+        return courseRepository.findAllByAcademyId(academyId);
     }
 
     /**
@@ -48,6 +56,10 @@ public class CourseQueryServiceImpl implements CourseQueryService {
      */
     @Override
     public Optional<Course> handle(GetCourseByIdQuery query) {
-        return courseRepository.findById(query.courseId());
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
+
+        return courseRepository.findById(query.courseId())
+                .filter(course -> course.getAcademyId().equals(academyId));
     }
 }
