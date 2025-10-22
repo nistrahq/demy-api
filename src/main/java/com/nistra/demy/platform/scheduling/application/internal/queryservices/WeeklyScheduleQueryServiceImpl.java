@@ -1,6 +1,7 @@
 package com.nistra.demy.platform.scheduling.application.internal.queryservices;
 
 
+import com.nistra.demy.platform.institution.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.scheduling.domain.model.aggregates.WeeklySchedule;
 import com.nistra.demy.platform.scheduling.domain.model.entities.Schedule;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetAllWeeklySchedulesQuery;
@@ -24,15 +25,17 @@ public class WeeklyScheduleQueryServiceImpl implements WeeklyScheduleQueryServic
 
     private final WeeklyScheduleRepository weeklyScheduleRepository;
     private final ScheduleRepository scheduleRepository;
+    private final ExternalIamService externalIamService;
 
     /**
      * Constructor that initializes the service with the required repositories.
      * @param weeklyScheduleRepository The weekly schedule repository.
      * @param scheduleRepository The schedule repository.
      */
-    public WeeklyScheduleQueryServiceImpl(WeeklyScheduleRepository weeklyScheduleRepository, ScheduleRepository scheduleRepository) {
+    public WeeklyScheduleQueryServiceImpl(WeeklyScheduleRepository weeklyScheduleRepository, ScheduleRepository scheduleRepository, ExternalIamService externalIamService) { // [MODIFICADO]
         this.weeklyScheduleRepository = weeklyScheduleRepository;
         this.scheduleRepository= scheduleRepository;
+        this.externalIamService = externalIamService; // Inyectar ACL
     }
 
     /**
@@ -44,9 +47,11 @@ public class WeeklyScheduleQueryServiceImpl implements WeeklyScheduleQueryServic
      */
     @Override
     public List<WeeklySchedule> handle(GetAllWeeklySchedulesQuery query) {
-        return weeklyScheduleRepository.findAll();
-    }
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
 
+        return weeklyScheduleRepository.findAllByAcademyId(academyId);
+    }
     /**
      * This method is used to handle retrieving a weekly schedule by its ID.
      * @param query The get weekly schedule by ID query containing the weekly schedule ID.
@@ -56,7 +61,11 @@ public class WeeklyScheduleQueryServiceImpl implements WeeklyScheduleQueryServic
      */
     @Override
     public Optional<WeeklySchedule> handle(GetWeeklyScheduleByIdQuery query) {
-        return weeklyScheduleRepository.findById(query.weeklyScheduleId());
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
+
+        return weeklyScheduleRepository.findById(query.weeklyScheduleId())
+                .filter(schedule -> schedule.getAcademyId().equals(academyId)); // AÑADIR FILTRO DE PROPIEDAD
     }
 
     /**
@@ -68,7 +77,10 @@ public class WeeklyScheduleQueryServiceImpl implements WeeklyScheduleQueryServic
      */
     @Override
     public Optional<WeeklySchedule> handle(GetWeeklyScheduleByNameQuery query) {
-        return weeklyScheduleRepository.findByName(query.name());
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
+
+        return weeklyScheduleRepository.findByNameAndAcademyId(query.name(), academyId);
     }
 
     /**

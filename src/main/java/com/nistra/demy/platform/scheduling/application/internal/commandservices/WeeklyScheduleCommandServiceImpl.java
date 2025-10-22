@@ -1,5 +1,6 @@
 package com.nistra.demy.platform.scheduling.application.internal.commandservices;
 
+import com.nistra.demy.platform.institution.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.scheduling.application.internal.outboundservices.acl.ExternalInstitutionService;
 import com.nistra.demy.platform.scheduling.domain.model.aggregates.WeeklySchedule;
 import com.nistra.demy.platform.scheduling.domain.model.commands.*;
@@ -9,6 +10,7 @@ import com.nistra.demy.platform.scheduling.domain.services.WeeklyScheduleCommand
 import com.nistra.demy.platform.scheduling.infrastructure.persistence.jpa.repositories.ScheduleRepository;
 import com.nistra.demy.platform.scheduling.infrastructure.persistence.jpa.repositories.WeeklyScheduleRepository;
 import com.nistra.demy.platform.institution.domain.model.valueobjects.UserId;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -21,19 +23,30 @@ import java.util.Optional;
 public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandService {
 
     private final WeeklyScheduleRepository weeklyScheduleRepository;
-    private final ExternalInstitutionService externalIamService;
+    private final ExternalInstitutionService externalInstitutionService;
     private final ScheduleRepository scheduleRepository;
+    private final ExternalIamService externalIamService;
 
     /**
      * Constructor that initializes the service with the required repositories and external services.
      * @param weeklyScheduleRepository The weekly schedule repository.
-     * @param externalIamService The external IAM service for teacher validation.
+     * @param externalInstitutionService The external IAM service for teacher validation.
      * @param scheduleRepository The schedule repository.
      */
-    public WeeklyScheduleCommandServiceImpl(WeeklyScheduleRepository weeklyScheduleRepository, ExternalInstitutionService externalIamService, ScheduleRepository scheduleRepository) {
+    public WeeklyScheduleCommandServiceImpl(WeeklyScheduleRepository weeklyScheduleRepository,
+                                            ExternalInstitutionService externalInstitutionService,
+                                            ScheduleRepository scheduleRepository,
+                                            ExternalIamService externalIamService
+                                            ) {
         this.weeklyScheduleRepository = weeklyScheduleRepository;
-        this.externalIamService = externalIamService;
+        this.externalInstitutionService = externalInstitutionService;
         this.scheduleRepository = scheduleRepository;
+        this.externalIamService = externalIamService;
+    }
+
+    private AcademyId getContextAcademyId() {
+        return externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
     }
 
     /**
@@ -46,11 +59,13 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
      */
     @Override
     public Long handle(CreateWeeklyScheduleCommand command) {
-        if (weeklyScheduleRepository.existsByName(command.name())) {
+        var academyId = getContextAcademyId();
+
+        if (weeklyScheduleRepository.existsByNameAndAcademyId(command.name(), academyId)) {
             throw new IllegalArgumentException("Weekly schedule with name " + command.name() + " already exists");
         }
 
-        var weeklySchedule = new WeeklySchedule(command);
+        var weeklySchedule = new WeeklySchedule(command, academyId);
         weeklyScheduleRepository.save(weeklySchedule);
         return weeklySchedule.getId();
     }
@@ -65,16 +80,23 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
      */
     @Override
     public Optional<WeeklySchedule> handle(UpdateWeeklyScheduleNameCommand command) {
+        var academyId = getContextAcademyId();
+
         var weeklyScheduleOpt = weeklyScheduleRepository.findById(command.weeklyScheduleId());
         if (weeklyScheduleOpt.isEmpty()) {
             throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " not found");
         }
 
-        if (weeklyScheduleRepository.existsByNameAndIdNot(command.name(), command.weeklyScheduleId())) {
-            throw new IllegalArgumentException("Weekly schedule with name " + command.name() + " already exists");
+        var weeklySchedule = weeklyScheduleOpt.get();
+
+        if (!weeklySchedule.getAcademyId().equals(academyId)) {
+            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " does not belong to the current academy");
         }
 
-        var weeklySchedule = weeklyScheduleOpt.get();
+        if (weeklyScheduleRepository.existsByNameAndIdNotAndAcademyId(command.name(), command.weeklyScheduleId(), academyId)) {
+            throw new IllegalArgumentException("Weekly schedule with name " + command.name() + " already exists in this academy");
+        }
+
         weeklySchedule.updateName(command.name());
         weeklyScheduleRepository.save(weeklySchedule);
         return Optional.of(weeklySchedule);
@@ -91,15 +113,22 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
      */
     @Override
     public Optional<WeeklySchedule> handle(AddScheduleToWeeklyCommand command) {
+        var academyId = getContextAcademyId();
+
         var weeklyScheduleOpt = weeklyScheduleRepository.findById(command.weeklyScheduleId());
         if (weeklyScheduleOpt.isEmpty()) {
             throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " not found");
         }
 
         var weeklySchedule = weeklyScheduleOpt.get();
+
+        if (!weeklySchedule.getAcademyId().equals(academyId)) {
+            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " does not belong to the current academy");
+        }
+
         var dayOfWeek = DayOfWeek.valueOf(command.dayOfWeek().toUpperCase());
 
-        UserId teacherId = externalIamService
+        UserId teacherId = externalInstitutionService
                 .fetchTeacherIdByFullName(command.teacherFirstName(), command.teacherLastName())
                 .orElseThrow(() -> new IllegalArgumentException("No teacher with that fullname was found"));
 
@@ -126,12 +155,19 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
      */
     @Override
     public Optional<WeeklySchedule> handle(RemoveScheduleFromWeeklyCommand command) {
+        var academyId = getContextAcademyId();
+
         var weeklyScheduleOpt = weeklyScheduleRepository.findById(command.weeklyScheduleId());
         if (weeklyScheduleOpt.isEmpty()) {
             throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " not found");
         }
 
         var weeklySchedule = weeklyScheduleOpt.get();
+
+        if (!weeklySchedule.getAcademyId().equals(academyId)) {
+            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " does not belong to the current academy");
+        }
+
         weeklySchedule.removeSchedule(command.scheduleId());
         weeklyScheduleRepository.save(weeklySchedule);
         return Optional.of(weeklySchedule);
@@ -145,15 +181,20 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
      */
     @Override
     public void handle(DeleteWeeklyScheduleCommand command) {
-        if (!weeklyScheduleRepository.existsById(command.weeklyScheduleId())) {
-            throw new IllegalArgumentException("WeeklySchedule with id " + command.weeklyScheduleId() + " not found");
+        var academyId = getContextAcademyId();
+
+        var weeklySchedule = weeklyScheduleRepository.findById(command.weeklyScheduleId())
+                .orElseThrow(() -> new IllegalArgumentException("WeeklySchedule with id " + command.weeklyScheduleId() + " not found"));
+
+        if (!weeklySchedule.getAcademyId().equals(academyId)) {
+            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " does not belong to the current academy");
         }
+
         try {
             weeklyScheduleRepository.deleteById(command.weeklyScheduleId());
         } catch (Exception e) {
             throw new IllegalArgumentException("Error deleting weekly schedule: " + e.getMessage(), e);
         }
-
     }
 
     /**
@@ -167,16 +208,24 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
      */
     @Override
     public Optional<Schedule> handle(UpdateScheduleCommand command) {
+        var academyId = getContextAcademyId();
+
         var scheduleOpt = scheduleRepository.findById(command.scheduleId());
         if (scheduleOpt.isEmpty()) {
             throw new IllegalArgumentException("Schedule with id " + command.scheduleId() + " not found");
         }
+
         var schedule = scheduleOpt.get();
+
+        if (!schedule.getWeeklySchedule().getAcademyId().equals(academyId)) {
+            throw new IllegalArgumentException("Schedule with id " + command.scheduleId() + " does not belong to the current academy context.");
+        }
+
         schedule.updateSchedule(
-            command.classroomId(),
-            command.startTime(),
-            command.endTime(),
-            DayOfWeek.valueOf(command.dayOfWeek().toUpperCase())
+                command.classroomId(),
+                command.startTime(),
+                command.endTime(),
+                DayOfWeek.valueOf(command.dayOfWeek().toUpperCase())
         );
         scheduleRepository.save(schedule);
         return Optional.of(schedule);
