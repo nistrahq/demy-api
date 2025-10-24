@@ -8,6 +8,10 @@ import com.nistra.demy.platform.institution.interfaces.rest.resources.AcademyRes
 import com.nistra.demy.platform.institution.interfaces.rest.resources.RegisterAcademyResource;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.AcademyResourceFromEntityAssembler;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.RegisterAcademyCommandFromResourceAssembler;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +35,19 @@ public class AcademiesController {
         this.academyQueryService = academyQueryService;
     }
 
+    @Operation(
+            summary = "Register a new academy",
+            description = "Creates a new academy in the system using the given data.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Academy successfully created",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = AcademyResource.class))
+                    ),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data")
+            }
+    )
     @PostMapping
     public ResponseEntity<AcademyResource> registerAcademy(@RequestBody RegisterAcademyResource resource) {
         var registerAcademyCommand = RegisterAcademyCommandFromResourceAssembler.toCommandFromResource(resource);
@@ -41,6 +58,14 @@ public class AcademiesController {
         return new ResponseEntity<>(academyResource, HttpStatus.CREATED);
     }
 
+    @Operation(
+            summary = "Check if an academy exists by ID",
+            description = "Uses the HEAD method to verify if an academy exists without returning the entity.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Academy exists"),
+                    @ApiResponse(responseCode = "404", description = "Academy not found")
+            }
+    )
     @RequestMapping(value = "/{id}", method = RequestMethod.HEAD)
     public ResponseEntity<Void> checkAcademyExists(@PathVariable Long id) {
         boolean exists = academyQueryService.handle(new ExistsAcademyByIdQuery(id));
