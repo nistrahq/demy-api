@@ -30,6 +30,12 @@ public class NotificationEmailServiceImpl implements UserNotificationEmailServic
                 Map.of("resetLink", resetLink));
     }
 
+    @Override
+    public void sendTemporaryPasswordEmail(String to, String temporaryPassword) {
+        sendTemplatedEmail(to, "Bienvenido a Demy", "es/email/temporary-password-email",
+                Map.of("temporaryPassword", temporaryPassword));
+    }
+
     private void sendTemplatedEmail(String to, String subject, String template, Map<String, Object> variables) {
         log.info("Sending email '{}' to {} using template {}", subject, to, template);
         templatedEmailService.sendEmail(to, subject, template, variables);
