@@ -23,12 +23,6 @@
         })
         private String periodName;
 
-    //    @Embedded
-    //    @AttributeOverrides({
-    //            @AttributeOverride(name = "id", column = @Column(name = "academy_id", nullable = false))
-    //    })
-    //    private AcademyId academyId;
-
         @Embedded
         @AttributeOverrides({
                 @AttributeOverride(name = "startDate", column = @Column(name = "start_date", nullable = false)),
