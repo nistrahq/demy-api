@@ -1,7 +1,6 @@
 package com.nistra.demy.platform.institution.interfaces.rest.controllers;
 
 import com.nistra.demy.platform.institution.domain.model.queries.ExistsAcademyByIdQuery;
-import com.nistra.demy.platform.institution.domain.model.queries.GetAcademyByIdQuery;
 import com.nistra.demy.platform.institution.domain.services.AcademyCommandService;
 import com.nistra.demy.platform.institution.domain.services.AcademyQueryService;
 import com.nistra.demy.platform.institution.interfaces.rest.resources.AcademyResource;
@@ -13,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -70,5 +70,22 @@ public class AcademiesController {
     public ResponseEntity<Void> checkAcademyExists(@PathVariable Long id) {
         boolean exists = academyQueryService.handle(new ExistsAcademyByIdQuery(id));
         return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+
+    @Operation(
+            summary = "Handle CORS preflight requests",
+            description = "Exposes allowed HTTP methods and headers for the /academies resource.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "CORS configuration returned successfully")
+            }
+    )
+    @RequestMapping(method = RequestMethod.OPTIONS)
+    public ResponseEntity<Void> handleOptions() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Allow", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
+        headers.add("Access-Control-Allow-Origin", "*");
+        headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
+        headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        return new ResponseEntity<>(headers, HttpStatus.OK);
     }
 }
