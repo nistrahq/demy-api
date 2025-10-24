@@ -1,6 +1,7 @@
 package com.nistra.demy.platform.institution.application.internal.queryservices;
 
 import com.nistra.demy.platform.institution.domain.model.aggregates.Academy;
+import com.nistra.demy.platform.institution.domain.model.queries.ExistsAcademyByIdQuery;
 import com.nistra.demy.platform.institution.domain.model.queries.GetAcademyByIdQuery;
 import com.nistra.demy.platform.institution.domain.services.AcademyQueryService;
 import com.nistra.demy.platform.institution.infrastructure.persistence.jpa.repositories.AcademyRepository;
@@ -20,5 +21,10 @@ public class AcademyQueryServiceImpl implements AcademyQueryService {
     @Override
     public Optional<Academy> handle(GetAcademyByIdQuery query) {
         return academyRepository.findById(query.academyId());
+    }
+
+    @Override
+    public boolean handle(ExistsAcademyByIdQuery query) {
+        return academyRepository.existsById(query.academyId());
     }
 }
