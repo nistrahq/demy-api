@@ -1,11 +1,10 @@
 package com.nistra.demy.platform.iam.application.acl;
 
-import com.nistra.demy.platform.iam.application.internal.outboundservices.hashing.HashingService;
 import com.nistra.demy.platform.iam.application.internal.outboundservices.verification.VerificationService;
-import com.nistra.demy.platform.iam.domain.model.commands.SignUpCommand;
 import com.nistra.demy.platform.iam.domain.model.commands.SignUpVerifiedUserCommand;
 import com.nistra.demy.platform.iam.domain.model.entities.Role;
 import com.nistra.demy.platform.iam.domain.model.queries.GetAuthenticatedUserTenantIdQuery;
+import com.nistra.demy.platform.iam.domain.model.queries.GetUserByIdQuery;
 import com.nistra.demy.platform.iam.domain.services.UserCommandService;
 import com.nistra.demy.platform.iam.domain.services.UserQueryService;
 import com.nistra.demy.platform.iam.interfaces.acl.IamContextFacade;
@@ -29,6 +28,13 @@ public class IamContextFacadeImpl implements IamContextFacade {
         this.userCommandService = userCommandService;
         this.userQueryService = userQueryService;
         this.verificationService = verificationService;
+    }
+
+    @Override
+    public String fetchUserEmailAddressByUserId(Long userId) {
+        var getUserByIdQuery = new GetUserByIdQuery(userId);
+        var user = userQueryService.handle(getUserByIdQuery);
+        return user.map(u -> u.getEmailAddress().email()).orElse("");
     }
 
     @Override
