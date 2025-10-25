@@ -4,6 +4,7 @@ import com.nistra.demy.platform.iam.interfaces.acl.IamContextFacade;
 import com.nistra.demy.platform.institution.domain.model.valueobjects.InstitutionRoles;
 import com.nistra.demy.platform.institution.domain.model.valueobjects.UserId;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.EmailAddress;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,5 +27,10 @@ public class ExternalIamService {
     public Optional<UserId> registerTeacher(String email) {
         var userId = iamContextFacade.signUpVerifiedUser(email, List.of(InstitutionRoles.ROLE_TEACHER.name()));
         return userId == 0L ? Optional.empty() : Optional.of(new UserId(userId));
+    }
+
+    public Optional<EmailAddress> fetchEmailAddressByUserId(UserId userId) {
+        var email = iamContextFacade.fetchUserEmailAddressByUserId(userId.userId());
+        return email == null ? Optional.empty() : Optional.of(new EmailAddress(email));
     }
 }
