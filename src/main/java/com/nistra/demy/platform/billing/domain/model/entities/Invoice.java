@@ -1,18 +1,16 @@
 package com.nistra.demy.platform.billing.domain.model.entities;
 
-import com.nistra.demy.platform.billing.domain.model.commands.AssignInvoiceCommand;
-import com.nistra.demy.platform.billing.domain.model.valueobjects.BillingAccountId;
+import com.nistra.demy.platform.billing.domain.model.aggregates.BillingAccount;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceStatus;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceType;
 import com.nistra.demy.platform.shared.domain.model.entities.AuditableModel;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.Money;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.LocalDate;
 
+@Getter
 @Entity
 public class Invoice extends AuditableModel {
 
@@ -31,9 +29,14 @@ public class Invoice extends AuditableModel {
     @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
 
-    @Embedded
-    private BillingAccountId billingAccountId;
+    @ManyToOne
+    @JoinColumn(name = "billing_account_id")
+    private BillingAccount billingAccount;
 
     protected Invoice() {
+    }
+
+    protected void setBillingAccount(BillingAccount billingAccount) {
+        this.billingAccount = billingAccount;
     }
 }
