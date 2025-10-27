@@ -3,9 +3,11 @@ package com.nistra.demy.platform.attendance.domain.model.aggregates;
 
 import com.nistra.demy.platform.attendance.domain.model.commands.CreateClassAttendanceCommand;
 import com.nistra.demy.platform.attendance.domain.model.entities.AttendanceRecord;
+import com.nistra.demy.platform.attendance.domain.model.valueobjects.AttendanceStatus;
 import com.nistra.demy.platform.attendance.domain.model.valueobjects.ClassSessionId;
 import com.nistra.demy.platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.DniNumber;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -60,6 +62,17 @@ public class ClassAttendance extends AuditableAbstractAggregateRoot<ClassAttenda
         ));
     }
 
+    public AttendanceRecord getRecordByDniOrThrow(DniNumber dni) {
+        return this.attendance.stream()
+                .filter(ar -> ar.getDni().equals(dni))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No existe alumno con ese DNI en esta asistencia"));
+    }
+
+    public void updateRecordStatus(DniNumber dni, AttendanceStatus newStatus) {
+        var record = getRecordByDniOrThrow(dni);
+        record.updateStatus(newStatus);
+    }
 
     public void addAttendance(AttendanceRecord record) {
         this.attendance.add(record);
