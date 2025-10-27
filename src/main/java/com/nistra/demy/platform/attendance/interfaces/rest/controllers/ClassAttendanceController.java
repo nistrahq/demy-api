@@ -2,6 +2,7 @@ package com.nistra.demy.platform.attendance.interfaces.rest.controllers;
 
 
 import com.nistra.demy.platform.attendance.domain.model.aggregates.ClassAttendance;
+import com.nistra.demy.platform.attendance.domain.model.commands.DeleteClassAttendanceCommand;
 import com.nistra.demy.platform.attendance.domain.model.commands.UpdateAttendanceRecordStatusCommand;
 import com.nistra.demy.platform.attendance.domain.model.queries.GetAllClassAttendancesByAcademyQuery;
 import com.nistra.demy.platform.attendance.domain.model.queries.GetClassAttendanceByIdQuery;
@@ -122,6 +123,21 @@ public class ClassAttendanceController {
         return maybe
                 .map(agg -> ResponseEntity.ok(ClassAttendanceResourceFromEntityAssembler.toResourceFromEntity(agg)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @Operation(
+            summary = "Delete a class attendance by id (scoped by Academy)",
+            description = "Elimina un ClassAttendance por su ID dentro del alcance de la Academia actual."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Eliminado correctamente"),
+            @ApiResponse(responseCode = "404", description = "No encontrado")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+        var deleted = classAttendanceCommandService.handle(new DeleteClassAttendanceCommand(id));
+        return deleted ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }
 
