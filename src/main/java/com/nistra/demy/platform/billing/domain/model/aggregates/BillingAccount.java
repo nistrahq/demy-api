@@ -1,5 +1,6 @@
 package com.nistra.demy.platform.billing.domain.model.aggregates;
 
+import com.nistra.demy.platform.billing.domain.model.commands.AssignInvoiceCommand;
 import com.nistra.demy.platform.billing.domain.model.commands.CreateBillingAccountCommand;
 import com.nistra.demy.platform.billing.domain.model.entities.Invoice;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.AccountStatus;
@@ -37,6 +38,19 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
         this.invoices = new HashSet<>();
         this.status = AccountStatus.ACTIVE;
         this.academyId = academyId;
+    }
+
+    public void assignInvoice(AssignInvoiceCommand command) {
+        var invoice = new Invoice(
+                command.invoiceType(),
+                command.amount(),
+                command.description(),
+                command.issueDate(),
+                command.dueDate(),
+                command.status(),
+                this
+        );
+        invoices.add(invoice);
     }
 
     public Set<Invoice> getInvoices() {

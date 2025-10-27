@@ -39,4 +39,22 @@ public class Invoice extends AuditableModel {
     protected void setBillingAccount(BillingAccount billingAccount) {
         this.billingAccount = billingAccount;
     }
+
+    public Invoice(
+            InvoiceType invoiceType,
+            Money amount,
+            String description,
+            LocalDate issueDate,
+            LocalDate dueDate,
+            InvoiceStatus status,
+            BillingAccount billingAccount
+    ) {
+        this.invoiceType = invoiceType;
+        this.amount = amount;
+        this.description = description;
+        this.issueDate = issueDate;
+        this.dueDate = dueDate;
+        this.status = status;
+        this.billingAccount = billingAccount;
+    }
 }
