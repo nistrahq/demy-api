@@ -3,6 +3,7 @@ package com.nistra.demy.platform.attendance.application.internal.commandservices
 import com.nistra.demy.platform.attendance.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.attendance.domain.model.aggregates.ClassAttendance;
 import com.nistra.demy.platform.attendance.domain.model.commands.CreateClassAttendanceCommand;
+import com.nistra.demy.platform.attendance.domain.model.commands.UpdateAttendanceRecordStatusCommand;
 import com.nistra.demy.platform.attendance.domain.services.ClassAttendanceCommandService;
 import com.nistra.demy.platform.attendance.infrastructure.persistence.jpa.repositories.ClassAttendanceRepository;
 import jakarta.transaction.Transactional;
@@ -54,5 +55,19 @@ public class ClassAttendanceCommandServiceImpl  implements ClassAttendanceComman
 
         var created = classAttendanceRepository.save(aggregate);
         return Optional.of(created);
+    }
+
+    @Transactional
+    public Optional<ClassAttendance> handle(UpdateAttendanceRecordStatusCommand command) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No hay AcademyId en el contexto de IAM"));
+
+        var aggregate = classAttendanceRepository
+                .findByIdAndAcademyId(command.classAttendanceId(), academyId)
+                .orElseThrow(() -> new IllegalArgumentException("Asistencia no encontrada o fuera de tu academia"));
+
+        aggregate.updateRecordStatus(command.dni(), command.newStatus());
+
+        return Optional.of(aggregate);
     }
 }
