@@ -2,6 +2,7 @@ package com.nistra.demy.platform.attendance.domain.services;
 
 import com.nistra.demy.platform.attendance.domain.model.aggregates.ClassAttendance;
 import com.nistra.demy.platform.attendance.domain.model.commands.CreateClassAttendanceCommand;
+import com.nistra.demy.platform.attendance.domain.model.commands.DeleteClassAttendanceCommand;
 import com.nistra.demy.platform.attendance.domain.model.commands.UpdateAttendanceRecordStatusCommand;
 
 import java.util.Optional;
@@ -21,5 +22,7 @@ public interface ClassAttendanceCommandService {
     Optional<ClassAttendance> handle (CreateClassAttendanceCommand command);
 
     Optional<ClassAttendance> handle(UpdateAttendanceRecordStatusCommand command);
+
+    boolean handle(DeleteClassAttendanceCommand command);
 
 }
