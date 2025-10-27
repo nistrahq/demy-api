@@ -40,7 +40,7 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
         this.academyId = academyId;
     }
 
-    public void assignInvoice(AssignInvoiceCommand command) {
+    public Invoice assignInvoice(AssignInvoiceCommand command) {
         var invoice = new Invoice(
                 command.invoiceType(),
                 command.amount(),
@@ -51,6 +51,7 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
                 this
         );
         invoices.add(invoice);
+        return invoice;
     }
 
     public Set<Invoice> getInvoices() {

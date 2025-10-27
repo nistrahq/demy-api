@@ -2,7 +2,9 @@ package com.nistra.demy.platform.billing.application.internal.commandservices;
 
 import com.nistra.demy.platform.billing.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.billing.domain.model.aggregates.BillingAccount;
+import com.nistra.demy.platform.billing.domain.model.commands.AssignInvoiceCommand;
 import com.nistra.demy.platform.billing.domain.model.commands.CreateBillingAccountCommand;
+import com.nistra.demy.platform.billing.domain.model.entities.Invoice;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountCommandService;
 import com.nistra.demy.platform.billing.infrastructure.persistence.jpa.repositories.BillingAccountRepository;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,19 @@ public class BillingAccountCommandServiceImpl implements BillingAccountCommandSe
             return Optional.of(billingAccount);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create billing account: %s".formatted(e.getMessage()));
+        }
+    }
+
+    @Override
+    public Optional<Invoice> handle(AssignInvoiceCommand command) {
+        var billingAccount = billingAccountRepository.findById(command.billingAccountId())
+                .orElseThrow(() -> new RuntimeException("Billing account not found"));
+        var invoice = billingAccount.assignInvoice(command);
+        try {
+            billingAccountRepository.save(billingAccount);
+            return Optional.of(invoice);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to assign invoice: %s".formatted(e.getMessage()));
         }
     }
 }

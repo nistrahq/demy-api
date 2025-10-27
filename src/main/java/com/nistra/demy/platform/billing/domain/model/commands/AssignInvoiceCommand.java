@@ -12,7 +12,8 @@ public record AssignInvoiceCommand(
          String description,
          LocalDate issueDate,
          LocalDate dueDate,
-         InvoiceStatus status
+         InvoiceStatus status,
+         Long billingAccountId
 ) {
     public AssignInvoiceCommand {
         if (invoiceType == null)
@@ -27,5 +28,7 @@ public record AssignInvoiceCommand(
             throw new IllegalArgumentException("Due date cannot be null");
         if (status == null)
             throw new IllegalArgumentException("Invoice status cannot be null");
+        if (billingAccountId == null || billingAccountId <= 0)
+            throw new IllegalArgumentException("Billing account ID cannot be null or less than or equal to zero");
     }
 }
