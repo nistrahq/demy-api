@@ -3,9 +3,12 @@ package com.nistra.demy.platform.attendance.infrastructure.persistence.jpa.repos
 import com.nistra.demy.platform.attendance.domain.model.aggregates.ClassAttendance;
 import com.nistra.demy.platform.attendance.domain.model.valueobjects.ClassSessionId;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * JPA repository for ClassAttendance entity
@@ -22,5 +25,11 @@ public interface ClassAttendanceRepository extends JpaRepository<ClassAttendance
             ClassSessionId classSessionId,
             LocalDate date
     );
+
+    Optional<ClassAttendance> findByIdAndAcademyId(Long id, AcademyId academyId);
+
+    @EntityGraph(attributePaths = {"attendance"})
+    List<ClassAttendance> findAllByAcademyId(AcademyId academyId);
+
 
 }
