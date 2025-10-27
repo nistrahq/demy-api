@@ -3,6 +3,7 @@ package com.nistra.demy.platform.attendance.application.internal.commandservices
 import com.nistra.demy.platform.attendance.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.attendance.domain.model.aggregates.ClassAttendance;
 import com.nistra.demy.platform.attendance.domain.model.commands.CreateClassAttendanceCommand;
+import com.nistra.demy.platform.attendance.domain.model.commands.DeleteClassAttendanceCommand;
 import com.nistra.demy.platform.attendance.domain.model.commands.UpdateAttendanceRecordStatusCommand;
 import com.nistra.demy.platform.attendance.domain.services.ClassAttendanceCommandService;
 import com.nistra.demy.platform.attendance.infrastructure.persistence.jpa.repositories.ClassAttendanceRepository;
@@ -69,5 +70,18 @@ public class ClassAttendanceCommandServiceImpl  implements ClassAttendanceComman
         aggregate.updateRecordStatus(command.dni(), command.newStatus());
 
         return Optional.of(aggregate);
+    }
+
+    @Override
+    @Transactional
+    public boolean handle(DeleteClassAttendanceCommand command) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No hay AcademyId en el contexto de IAM"));
+
+        var maybe = classAttendanceRepository.findByIdAndAcademyId(command.id(), academyId);
+        if (maybe.isEmpty()) return false;
+
+        classAttendanceRepository.delete(maybe.get());
+        return true;
     }
 }
