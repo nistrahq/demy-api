@@ -23,7 +23,14 @@ public class BillingAccountQueryServiceImpl implements BillingAccountQueryServic
     @Transactional(readOnly = true)
     public List<Invoice> handle(GetAllInvoicesByBillingAccountIdQuery query) {
         var billingAccount = billingAccountRepository.findById(query.billingAccountId())
-                .orElseThrow(() -> new RuntimeException("Billing account not found"));
-        return billingAccount.getInvoices().stream().toList();
+                .orElseThrow(() -> new RuntimeException("Billing account not found for id: %s".formatted(query.billingAccountId())));
+        return billingAccount.getInvoices();
+    }
+
+    @Override
+    public List<Invoice> handle(GetAllInvoicesByStudentIdQuery query) {
+        var billingAccount = billingAccountRepository.findByStudentId(query.studentId())
+                .orElseThrow(() -> new RuntimeException("Billing account not found for student id: %s".formatted(query.studentId())));
+        return billingAccount.getInvoices();
     }
 }
