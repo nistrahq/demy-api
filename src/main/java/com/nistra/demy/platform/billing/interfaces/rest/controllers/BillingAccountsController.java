@@ -49,7 +49,7 @@ public class BillingAccountsController {
     }
 
     @PostMapping("/{billingAccountId}/invoices")
-    public ResponseEntity<BillingAccountResource> assignInvoice(@PathVariable Long billingAccountId, @RequestBody AssignInvoiceResource resource) {
+    public ResponseEntity<BillingAccountResource> assignInvoiceToBillingAccount(@PathVariable Long billingAccountId, @RequestBody AssignInvoiceResource resource) {
         var assignInvoiceCommand = AssignInvoiceCommandFromResourceAssembler.toCommandFromResource(billingAccountId, resource);
         var billingAccount = billingAccountCommandService.handle(assignInvoiceCommand);
         if (billingAccount.isEmpty()) return ResponseEntity.badRequest().build();

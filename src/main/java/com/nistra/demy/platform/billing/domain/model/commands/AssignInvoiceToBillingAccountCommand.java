@@ -6,7 +6,7 @@ import com.nistra.demy.platform.shared.domain.model.valueobjects.Money;
 
 import java.time.LocalDate;
 
-public record AssignInvoiceCommand(
+public record AssignInvoiceToBillingAccountCommand(
          InvoiceType invoiceType,
          Money amount,
          String description,
@@ -15,7 +15,7 @@ public record AssignInvoiceCommand(
          InvoiceStatus status,
          Long billingAccountId
 ) {
-    public AssignInvoiceCommand {
+    public AssignInvoiceToBillingAccountCommand {
         if (invoiceType == null)
             throw new IllegalArgumentException("Invoice type cannot be null");
         if (amount == null)
