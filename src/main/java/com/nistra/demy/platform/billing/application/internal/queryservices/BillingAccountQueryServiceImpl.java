@@ -1,7 +1,9 @@
 package com.nistra.demy.platform.billing.application.internal.queryservices;
 
+import com.nistra.demy.platform.billing.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.billing.domain.model.aggregates.BillingAccount;
 import com.nistra.demy.platform.billing.domain.model.entities.Invoice;
+import com.nistra.demy.platform.billing.domain.model.queries.GetAllBillingAccountsQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByBillingAccountIdQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByStudentIdQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetBillingAccountByIdQuery;
@@ -17,14 +19,26 @@ import java.util.Optional;
 public class BillingAccountQueryServiceImpl implements BillingAccountQueryService {
 
     private final BillingAccountRepository billingAccountRepository;
+    private final ExternalIamService externalIamService;
 
-    public BillingAccountQueryServiceImpl(BillingAccountRepository billingAccountRepository) {
+    public BillingAccountQueryServiceImpl(
+            BillingAccountRepository billingAccountRepository,
+            ExternalIamService externalIamService
+    ) {
         this.billingAccountRepository = billingAccountRepository;
+        this.externalIamService = externalIamService;
     }
 
     @Override
     public Optional<BillingAccount> handle(GetBillingAccountByIdQuery query) {
         return billingAccountRepository.findById(query.billingAccountId());
+    }
+
+    @Override
+    public List<BillingAccount> handle(GetAllBillingAccountsQuery query) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new RuntimeException("No academy found for the current user"));
+        return billingAccountRepository.findAllByAcademyId(academyId);
     }
 
     @Override
