@@ -1,6 +1,7 @@
 package com.nistra.demy.platform.billing.interfaces.rest.controllers;
 
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByBillingAccountIdQuery;
+import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByStudentIdQuery;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountCommandService;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountQueryService;
 import com.nistra.demy.platform.billing.interfaces.rest.resources.AssignInvoiceResource;
@@ -11,6 +12,7 @@ import com.nistra.demy.platform.billing.interfaces.rest.transform.AssignInvoiceC
 import com.nistra.demy.platform.billing.interfaces.rest.transform.BillingAccountResourceFromEntityAssembler;
 import com.nistra.demy.platform.billing.interfaces.rest.transform.CreateBillingAccountCommandFromResourceAssembler;
 import com.nistra.demy.platform.billing.interfaces.rest.transform.InvoiceResourceFromEntityAssembler;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.StudentId;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,9 +59,18 @@ public class BillingAccountsController {
     }
 
     @GetMapping("/{billingAccountId}/invoices")
-    public ResponseEntity<List<InvoiceResource>> getAllInvoicesByAccount(@PathVariable Long billingAccountId) {
+    public ResponseEntity<List<InvoiceResource>> getAllInvoicesByAccountId(@PathVariable Long billingAccountId) {
         var qetAllInvoicesByBillingAccountIdQuery = new GetAllInvoicesByBillingAccountIdQuery(billingAccountId);
         var invoices = billingAccountQueryService.handle(qetAllInvoicesByBillingAccountIdQuery);
+        if (invoices.isEmpty()) return ResponseEntity.noContent().build();
+        var invoiceResources = InvoiceResourceFromEntityAssembler.toResourceListFromEntity(invoices);
+        return new ResponseEntity<>(invoiceResources, HttpStatus.OK);
+    }
+
+    @GetMapping("/student/{studentId}/invoices")
+    public ResponseEntity<List<InvoiceResource>> getAllInvoicesByStudentId(@PathVariable Long studentId) {
+        var getAllInvoicesByStudentIdQuery = new GetAllInvoicesByStudentIdQuery(new StudentId(studentId));
+        var invoices = billingAccountQueryService.handle(getAllInvoicesByStudentIdQuery);
         if (invoices.isEmpty()) return ResponseEntity.noContent().build();
         var invoiceResources = InvoiceResourceFromEntityAssembler.toResourceListFromEntity(invoices);
         return new ResponseEntity<>(invoiceResources, HttpStatus.OK);
