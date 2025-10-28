@@ -12,11 +12,11 @@ public class BillingAccountResourceFromEntityAssembler {
                 entity.getId(),
                 entity.getStudentId().studentId(),
                 entity.getAcademyId().academyId(),
-                InvoiceResourceFromEntityAssembler.toResourceListFromEntity(entity.getInvoices())
+                InvoiceResourceFromEntityAssembler.toResourcesFromEntities(entity.getInvoices())
         );
     }
 
-    public static List<BillingAccountResource> toResourceListFromEntity(Collection<BillingAccount> entities) {
+    public static List<BillingAccountResource> toResourcesFromEntities(Collection<BillingAccount> entities) {
         return entities.stream()
                 .map(BillingAccountResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();

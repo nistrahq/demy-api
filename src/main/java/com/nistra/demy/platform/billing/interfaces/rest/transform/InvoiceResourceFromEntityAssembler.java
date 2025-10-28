@@ -20,7 +20,7 @@ public class InvoiceResourceFromEntityAssembler {
         );
     }
 
-    public static List<InvoiceResource> toResourceListFromEntity(Collection<Invoice> entities) {
+    public static List<InvoiceResource> toResourcesFromEntities(Collection<Invoice> entities) {
         return entities.stream()
                 .map(InvoiceResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();

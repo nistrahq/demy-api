@@ -75,7 +75,7 @@ public class BillingAccountsController {
         var getAllBillingAccountsQuery = new GetAllBillingAccountsQuery();
         var billingAccounts = billingAccountQueryService.handle(getAllBillingAccountsQuery);
         if (billingAccounts.isEmpty()) return ResponseEntity.ok(List.of());
-        var billingAccountResources = BillingAccountResourceFromEntityAssembler.toResourceListFromEntity(billingAccounts);
+        var billingAccountResources = BillingAccountResourceFromEntityAssembler.toResourcesFromEntities(billingAccounts);
         return new ResponseEntity<>(billingAccountResources, HttpStatus.OK);
     }
 
@@ -84,7 +84,7 @@ public class BillingAccountsController {
         var qetAllInvoicesByBillingAccountIdQuery = new GetAllInvoicesByBillingAccountIdQuery(billingAccountId);
         var invoices = billingAccountQueryService.handle(qetAllInvoicesByBillingAccountIdQuery);
         if (invoices.isEmpty()) return ResponseEntity.ok(List.of());
-        var invoiceResources = InvoiceResourceFromEntityAssembler.toResourceListFromEntity(invoices);
+        var invoiceResources = InvoiceResourceFromEntityAssembler.toResourcesFromEntities(invoices);
         return new ResponseEntity<>(invoiceResources, HttpStatus.OK);
     }
 
@@ -93,7 +93,7 @@ public class BillingAccountsController {
         var getAllInvoicesByStudentIdQuery = new GetAllInvoicesByStudentIdQuery(new StudentId(studentId));
         var invoices = billingAccountQueryService.handle(getAllInvoicesByStudentIdQuery);
         if (invoices.isEmpty()) return ResponseEntity.ok(List.of());
-        var invoiceResources = InvoiceResourceFromEntityAssembler.toResourceListFromEntity(invoices);
+        var invoiceResources = InvoiceResourceFromEntityAssembler.toResourcesFromEntities(invoices);
         return new ResponseEntity<>(invoiceResources, HttpStatus.OK);
     }
 }
