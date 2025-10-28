@@ -9,4 +9,5 @@ import java.util.List;
 public interface BillingAccountQueryService {
     List<Invoice> handle(GetAllInvoicesByBillingAccountIdQuery query);
 
+    List<Invoice> handle(GetAllInvoicesByStudentIdQuery query);
 }
