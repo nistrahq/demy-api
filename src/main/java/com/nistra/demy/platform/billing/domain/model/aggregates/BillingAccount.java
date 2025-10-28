@@ -19,7 +19,7 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
     @Getter
     private StudentId studentId;
 
-    @OneToMany(mappedBy = "billingAccount", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "billingAccount", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Invoice> invoices;
 
     @Enumerated(EnumType.STRING)
