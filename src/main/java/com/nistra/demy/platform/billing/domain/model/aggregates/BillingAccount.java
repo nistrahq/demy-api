@@ -10,9 +10,7 @@ import com.nistra.demy.platform.shared.domain.model.valueobjects.StudentId;
 import jakarta.persistence.*;
 import lombok.Getter;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccount> {
@@ -22,7 +20,7 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
     private StudentId studentId;
 
     @OneToMany(mappedBy = "billingAccount", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Invoice> invoices;
+    private List<Invoice> invoices;
 
     @Enumerated(EnumType.STRING)
     private AccountStatus status;
@@ -35,12 +33,12 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
 
     public BillingAccount(CreateBillingAccountCommand command, AcademyId academyId) {
         this.studentId = command.studentId();
-        this.invoices = new HashSet<>();
+        this.invoices = new ArrayList<>();
         this.status = AccountStatus.ACTIVE;
         this.academyId = academyId;
     }
 
-    public Invoice assignInvoice(AssignInvoiceCommand command) {
+    public void assignInvoice(AssignInvoiceCommand command) {
         var invoice = new Invoice(
                 command.invoiceType(),
                 command.amount(),
@@ -51,10 +49,9 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
                 this
         );
         invoices.add(invoice);
-        return invoice;
     }
 
-    public Set<Invoice> getInvoices() {
-        return Collections.unmodifiableSet(invoices);
+    public List<Invoice> getInvoices() {
+        return Collections.unmodifiableList(invoices);
     }
 }
