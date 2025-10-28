@@ -7,6 +7,7 @@ import com.nistra.demy.platform.shared.domain.model.entities.AuditableModel;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -26,6 +27,7 @@ public class Invoice extends AuditableModel {
 
     private LocalDate dueDate;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
 

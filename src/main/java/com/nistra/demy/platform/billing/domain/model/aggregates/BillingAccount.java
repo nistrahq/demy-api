@@ -4,6 +4,7 @@ import com.nistra.demy.platform.billing.domain.model.commands.AssignInvoiceToBil
 import com.nistra.demy.platform.billing.domain.model.commands.CreateBillingAccountCommand;
 import com.nistra.demy.platform.billing.domain.model.entities.Invoice;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.AccountStatus;
+import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceStatus;
 import com.nistra.demy.platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.StudentId;
@@ -49,6 +50,21 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
                 this
         );
         invoices.add(invoice);
+    }
+
+    public void markInvoiceAsPaid(Long invoiceId) {
+        var invoice = invoices.stream()
+                .filter(i -> i.getId().equals(invoiceId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        invoice.setStatus(InvoiceStatus.PAID);
+    }
+
+    public Invoice findInvoiceById(Long invoiceId) {
+        return this.invoices.stream()
+                .filter(i -> Objects.equals(i.getId(), invoiceId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
     }
 
     public List<Invoice> getInvoices() {
