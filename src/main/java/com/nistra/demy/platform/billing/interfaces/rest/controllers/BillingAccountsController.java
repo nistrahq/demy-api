@@ -1,5 +1,6 @@
 package com.nistra.demy.platform.billing.interfaces.rest.controllers;
 
+import com.nistra.demy.platform.billing.domain.model.commands.MarkInvoiceAsPaidCommand;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllBillingAccountsQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByBillingAccountIdQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByStudentIdQuery;
@@ -58,6 +59,16 @@ public class BillingAccountsController {
         var billingAccountEntity = billingAccount.get();
         var billingAccountResource = BillingAccountResourceFromEntityAssembler.toResourceFromEntity(billingAccountEntity);
         return new ResponseEntity<>(billingAccountResource, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{billingAccountId}/invoices/{invoiceId}/mark-as-paid")
+    public ResponseEntity<InvoiceResource> markInvoiceAsPaid(@PathVariable Long billingAccountId, @PathVariable Long invoiceId) {
+        var markInvoiceAsPaidCommand = new MarkInvoiceAsPaidCommand(invoiceId, billingAccountId);
+        var invoice = billingAccountCommandService.handle(markInvoiceAsPaidCommand);
+        if (invoice.isEmpty()) return ResponseEntity.badRequest().build();
+        var invoiceEntity = invoice.get();
+        var invoiceResource = InvoiceResourceFromEntityAssembler.toResourceFromEntity(invoiceEntity);
+        return new ResponseEntity<>(invoiceResource, HttpStatus.OK);
     }
 
     @GetMapping("/{billingAccountId}")
