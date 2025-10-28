@@ -1,16 +1,22 @@
 package com.nistra.demy.platform.billing.interfaces.rest.controllers;
 
+import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByBillingAccountIdQuery;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountCommandService;
+import com.nistra.demy.platform.billing.domain.services.BillingAccountQueryService;
 import com.nistra.demy.platform.billing.interfaces.rest.resources.AssignInvoiceResource;
 import com.nistra.demy.platform.billing.interfaces.rest.resources.BillingAccountResource;
 import com.nistra.demy.platform.billing.interfaces.rest.resources.CreateBillingAccountResource;
+import com.nistra.demy.platform.billing.interfaces.rest.resources.InvoiceResource;
 import com.nistra.demy.platform.billing.interfaces.rest.transform.AssignInvoiceCommandFromResourceAssembler;
 import com.nistra.demy.platform.billing.interfaces.rest.transform.BillingAccountResourceFromEntityAssembler;
 import com.nistra.demy.platform.billing.interfaces.rest.transform.CreateBillingAccountCommandFromResourceAssembler;
+import com.nistra.demy.platform.billing.interfaces.rest.transform.InvoiceResourceFromEntityAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -20,11 +26,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class BillingAccountsController {
 
     private final BillingAccountCommandService billingAccountCommandService;
+    private final BillingAccountQueryService billingAccountQueryService;
 
     public  BillingAccountsController(
-            BillingAccountCommandService billingAccountCommandService
+            BillingAccountCommandService billingAccountCommandService,
+            BillingAccountQueryService billingAccountQueryService
     ) {
         this.billingAccountCommandService = billingAccountCommandService;
+        this.billingAccountQueryService = billingAccountQueryService;
     }
 
     @PostMapping
@@ -45,5 +54,14 @@ public class BillingAccountsController {
         var billingAccountEntity = billingAccount.get();
         var billingAccountResource = BillingAccountResourceFromEntityAssembler.toResourceFromEntity(billingAccountEntity);
         return new ResponseEntity<>(billingAccountResource, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{billingAccountId}/invoices")
+    public ResponseEntity<List<InvoiceResource>> getAllInvoicesByAccount(@PathVariable Long billingAccountId) {
+        var qetAllInvoicesByBillingAccountIdQuery = new GetAllInvoicesByBillingAccountIdQuery(billingAccountId);
+        var invoices = billingAccountQueryService.handle(qetAllInvoicesByBillingAccountIdQuery);
+        if (invoices.isEmpty()) return ResponseEntity.noContent().build();
+        var invoiceResources = InvoiceResourceFromEntityAssembler.toResourceListFromEntity(invoices);
+        return new ResponseEntity<>(invoiceResources, HttpStatus.OK);
     }
 }
