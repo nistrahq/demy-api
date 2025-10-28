@@ -1,5 +1,6 @@
 package com.nistra.demy.platform.billing.interfaces.rest.controllers;
 
+import com.nistra.demy.platform.billing.domain.model.queries.GetAllBillingAccountsQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByBillingAccountIdQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByStudentIdQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetBillingAccountByIdQuery;
@@ -67,6 +68,15 @@ public class BillingAccountsController {
         var billingAccountEntity = billingAccount.get();
         var billingAccountResource = BillingAccountResourceFromEntityAssembler.toResourceFromEntity(billingAccountEntity);
         return new ResponseEntity<>(billingAccountResource, HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BillingAccountResource>> getAllBillingAccounts() {
+        var getAllBillingAccountsQuery = new GetAllBillingAccountsQuery();
+        var billingAccounts = billingAccountQueryService.handle(getAllBillingAccountsQuery);
+        if (billingAccounts.isEmpty()) return ResponseEntity.noContent().build();
+        var billingAccountResources = BillingAccountResourceFromEntityAssembler.toResourceListFromEntity(billingAccounts);
+        return new ResponseEntity<>(billingAccountResources, HttpStatus.OK);
     }
 
     @GetMapping("/{billingAccountId}/invoices")
