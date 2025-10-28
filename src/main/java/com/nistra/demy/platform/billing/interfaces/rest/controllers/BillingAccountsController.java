@@ -2,6 +2,7 @@ package com.nistra.demy.platform.billing.interfaces.rest.controllers;
 
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByBillingAccountIdQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByStudentIdQuery;
+import com.nistra.demy.platform.billing.domain.model.queries.GetBillingAccountByIdQuery;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountCommandService;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountQueryService;
 import com.nistra.demy.platform.billing.interfaces.rest.resources.AssignInvoiceResource;
@@ -56,6 +57,16 @@ public class BillingAccountsController {
         var billingAccountEntity = billingAccount.get();
         var billingAccountResource = BillingAccountResourceFromEntityAssembler.toResourceFromEntity(billingAccountEntity);
         return new ResponseEntity<>(billingAccountResource, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{billingAccountId}")
+    public ResponseEntity<BillingAccountResource> getBillingAccountById(@PathVariable Long billingAccountId) {
+        var getBillingAccountByIdQuery = new GetBillingAccountByIdQuery(billingAccountId);
+        var billingAccount = billingAccountQueryService.handle(getBillingAccountByIdQuery);
+        if (billingAccount.isEmpty()) return ResponseEntity.notFound().build();
+        var billingAccountEntity = billingAccount.get();
+        var billingAccountResource = BillingAccountResourceFromEntityAssembler.toResourceFromEntity(billingAccountEntity);
+        return new ResponseEntity<>(billingAccountResource, HttpStatus.OK);
     }
 
     @GetMapping("/{billingAccountId}/invoices")
