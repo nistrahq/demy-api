@@ -74,7 +74,7 @@ public class BillingAccountsController {
     public ResponseEntity<List<BillingAccountResource>> getAllBillingAccounts() {
         var getAllBillingAccountsQuery = new GetAllBillingAccountsQuery();
         var billingAccounts = billingAccountQueryService.handle(getAllBillingAccountsQuery);
-        if (billingAccounts.isEmpty()) return ResponseEntity.noContent().build();
+        if (billingAccounts.isEmpty()) return ResponseEntity.ok(List.of());
         var billingAccountResources = BillingAccountResourceFromEntityAssembler.toResourceListFromEntity(billingAccounts);
         return new ResponseEntity<>(billingAccountResources, HttpStatus.OK);
     }
@@ -83,16 +83,16 @@ public class BillingAccountsController {
     public ResponseEntity<List<InvoiceResource>> getAllInvoicesByAccountId(@PathVariable Long billingAccountId) {
         var qetAllInvoicesByBillingAccountIdQuery = new GetAllInvoicesByBillingAccountIdQuery(billingAccountId);
         var invoices = billingAccountQueryService.handle(qetAllInvoicesByBillingAccountIdQuery);
-        if (invoices.isEmpty()) return ResponseEntity.noContent().build();
+        if (invoices.isEmpty()) return ResponseEntity.ok(List.of());
         var invoiceResources = InvoiceResourceFromEntityAssembler.toResourceListFromEntity(invoices);
         return new ResponseEntity<>(invoiceResources, HttpStatus.OK);
     }
 
-    @GetMapping("/student/{studentId}/invoices")
+    @GetMapping("/invoices/by-student/{studentId}")
     public ResponseEntity<List<InvoiceResource>> getAllInvoicesByStudentId(@PathVariable Long studentId) {
         var getAllInvoicesByStudentIdQuery = new GetAllInvoicesByStudentIdQuery(new StudentId(studentId));
         var invoices = billingAccountQueryService.handle(getAllInvoicesByStudentIdQuery);
-        if (invoices.isEmpty()) return ResponseEntity.noContent().build();
+        if (invoices.isEmpty()) return ResponseEntity.ok(List.of());
         var invoiceResources = InvoiceResourceFromEntityAssembler.toResourceListFromEntity(invoices);
         return new ResponseEntity<>(invoiceResources, HttpStatus.OK);
     }
