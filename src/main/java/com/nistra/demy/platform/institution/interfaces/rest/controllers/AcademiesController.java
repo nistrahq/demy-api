@@ -1,11 +1,14 @@
 package com.nistra.demy.platform.institution.interfaces.rest.controllers;
 
 import com.nistra.demy.platform.institution.domain.model.queries.ExistsAcademyByIdQuery;
+import com.nistra.demy.platform.institution.domain.model.queries.GetCurrentAcademyQuery;
 import com.nistra.demy.platform.institution.domain.services.AcademyCommandService;
 import com.nistra.demy.platform.institution.domain.services.AcademyQueryService;
 import com.nistra.demy.platform.institution.interfaces.rest.resources.AcademyResource;
+import com.nistra.demy.platform.institution.interfaces.rest.resources.CurrentAcademyResource;
 import com.nistra.demy.platform.institution.interfaces.rest.resources.RegisterAcademyResource;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.AcademyResourceFromEntityAssembler;
+import com.nistra.demy.platform.institution.interfaces.rest.transform.CurrentAcademyResourceFromEntityAssembler;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.RegisterAcademyCommandFromResourceAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -56,6 +59,16 @@ public class AcademiesController {
         var academyEntity = academy.get();
         var academyResource = AcademyResourceFromEntityAssembler.toResourceFromEntity(academyEntity);
         return new ResponseEntity<>(academyResource, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/current")
+    public ResponseEntity<CurrentAcademyResource> getCurrentAcademy() {
+        var getCurrentAcademyQuery = new GetCurrentAcademyQuery();
+        var academy = academyQueryService.handle(getCurrentAcademyQuery);
+        if (academy.isEmpty()) return ResponseEntity.notFound().build();
+        var academyEntity = academy.get();
+        var currentAcademyResource = CurrentAcademyResourceFromEntityAssembler.toResourceFromEntity(academyEntity);
+        return new ResponseEntity<>(currentAcademyResource, HttpStatus.OK);
     }
 
     @Operation(
