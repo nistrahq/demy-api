@@ -61,6 +61,27 @@ public class AcademiesController {
         return new ResponseEntity<>(academyResource, HttpStatus.CREATED);
     }
 
+    @Operation(
+            summary = "Get current academy",
+            description = "Retrieves the academy linked to the currently authenticated administrator. " +
+                    "This endpoint returns the institution context (academy) associated with the user " +
+                    "based on the authentication token or session context.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Current academy retrieved successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CurrentAcademyResource.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "No academy is associated with the current user or could not be found",
+                            content = @Content
+                    )
+            }
+    )
     @GetMapping("/current")
     public ResponseEntity<CurrentAcademyResource> getCurrentAcademy() {
         var getCurrentAcademyQuery = new GetCurrentAcademyQuery();
