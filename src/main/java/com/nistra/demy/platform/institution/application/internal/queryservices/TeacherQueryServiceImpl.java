@@ -37,6 +37,8 @@ public class TeacherQueryServiceImpl implements TeacherQueryService {
 
     @Override
     public Optional<Teacher> handle(GetTeacherByFullNameQuery query) {
-        return teacherRepository.findByPersonName(query.personName());
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
+        return teacherRepository.findByPersonNameAndAcademyId(query.personName(),academyId);
     }
 }

@@ -31,6 +31,6 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
      */
     List<Teacher> findAllByAcademyId(AcademyId academyId);
 
-    Optional<Teacher> findByPersonName(PersonName fullName);
+    Optional<Teacher> findByPersonNameAndAcademyId(PersonName fullName, AcademyId academyId);
 
 }

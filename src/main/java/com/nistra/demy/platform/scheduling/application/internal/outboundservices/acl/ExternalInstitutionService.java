@@ -15,11 +15,7 @@ import java.util.Optional;
 public class ExternalInstitutionService {
     private final InstitutionContextFacade institutionContextFacade;
 
-    /**
-     * Constructor that initializes the service with the required IAM context facade.
-     * @param iamContextFacade The IAM context facade for accessing IAM operations.
-     */
-    public ExternalInstitutionService(IamContextFacade iamContextFacade, InstitutionContextFacade institutionContextFacade) {
+    public ExternalInstitutionService(InstitutionContextFacade institutionContextFacade) {
         this.institutionContextFacade = institutionContextFacade;
     }
 
