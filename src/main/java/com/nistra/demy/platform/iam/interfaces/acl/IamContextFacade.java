@@ -7,5 +7,7 @@ public interface IamContextFacade {
 
     Long signUpVerifiedUser(String email, List<String> roles);
 
+    Long fetchAuthenticatedUserId();
+
     Long fetchAuthenticatedUserTenantId();
 }
