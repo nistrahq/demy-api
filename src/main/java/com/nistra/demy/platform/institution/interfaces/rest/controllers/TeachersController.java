@@ -8,6 +8,11 @@ import com.nistra.demy.platform.institution.interfaces.rest.resources.RegisterTe
 import com.nistra.demy.platform.institution.interfaces.rest.resources.TeacherResource;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.RegisterTeacherCommandFromResourceAssembler;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.TeacherResourceFromEntityAssembler;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +36,16 @@ public class TeachersController {
         this.teacherQueryService = teacherQueryService;
     }
 
+    @Operation(
+            summary = "Register a new teacher",
+            description = "Creates a new teacher in the system with the provided information."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Teacher successfully registered",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TeacherResource.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input data or teacher could not be created", content = @Content)
+    })
     @PostMapping
     public ResponseEntity<TeacherResource> registerTeacher(@RequestBody RegisterTeacherResource resource) {
         var registerTeacherCommand = RegisterTeacherCommandFromResourceAssembler.toCommandFromResource(resource);
@@ -43,6 +58,15 @@ public class TeachersController {
         return new ResponseEntity<>(teacherResource, HttpStatus.CREATED);
     }
 
+    @Operation(
+            summary = "Get all teachers",
+            description = "Retrieves a list of all registered teachers, including their email addresses."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of teachers retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TeacherResource.class)))
+    })
     @GetMapping
     public ResponseEntity<List<TeacherResource>> getAllTeachers() {
         var getAllTeachersQuery = new GetAllTeachersQuery();
