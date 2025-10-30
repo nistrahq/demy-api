@@ -69,14 +69,15 @@ public class ClassAttendanceController {
 
     @Operation(
             summary = "Update attendance status for a student (by DNI)",
-            description = "Actualiza el estado de asistencia (PRESENT, ABSENT, EXCUSED) de un estudiante dentro de un ClassAttendance. " +
-                    "Alcance por Academia (tenant)."
+            description = "Update a student’s attendance status (PRESENT, ABSENT, EXCUSED) within a ClassAttendance. " +
+                    "Scoped by academy (tenant)."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Attendance status actualizado correctamente"),
-            @ApiResponse(responseCode = "400", description = "Bad Request (estado inválido o formato incorrecto)"),
-            @ApiResponse(responseCode = "404", description = "ClassAttendance o registro de DNI no encontrado")
+            @ApiResponse(responseCode = "200", description = "Attendance status updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad Request (invalid status or malformed input)"),
+            @ApiResponse(responseCode = "404", description = "ClassAttendance or DNI record not found")
     })
+
     @PatchMapping("/{id}/attendance/{dni}/status")
     public ResponseEntity<?> patchStatus(@PathVariable Long id,
                                          @PathVariable String dni,
@@ -96,12 +97,13 @@ public class ClassAttendanceController {
 
 
     @Operation(
-            summary = "List all class attendances (scoped by Academy)",
-            description = "Lista todas las asistencias de clase de la Academia actual (tenant)."
+            summary = "List all class attendances (academy-scoped)",
+            description = "Lists all class attendances for the current academy (tenant)."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente")
+            @ApiResponse(responseCode = "200", description = "List retrieved successfully")
     })
+
     @GetMapping("/all")
     public ResponseEntity<List<ClassAttendanceResource>> listAllByAcademy() {
         var list = classAttendanceQueryService.handle(new GetAllClassAttendancesByAcademyQuery());
@@ -111,12 +113,15 @@ public class ClassAttendanceController {
         return ResponseEntity.ok(resources);
     }
 
-    @Operation(summary = "Get a class attendance by id (scoped by Academy)",
-            description = "Obtiene un ClassAttendance por su ID dentro del alcance de la Academia actual.")
+    @Operation(
+            summary = "Get a class attendance by ID (academy-scoped)",
+            description = "Retrieves a ClassAttendance by its ID within the scope of the current academy (tenant)."
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Encontrado"),
-            @ApiResponse(responseCode = "404", description = "No encontrado")
+            @ApiResponse(responseCode = "200", description = "Found"),
+            @ApiResponse(responseCode = "404", description = "Not found")
     })
+
     @GetMapping("/{id}")
     public ResponseEntity<ClassAttendanceResource> getById(@PathVariable Long id) {
         var maybe = classAttendanceQueryService.handle(new GetClassAttendanceByIdQuery(id));
@@ -126,13 +131,14 @@ public class ClassAttendanceController {
     }
 
     @Operation(
-            summary = "Delete a class attendance by id (scoped by Academy)",
-            description = "Elimina un ClassAttendance por su ID dentro del alcance de la Academia actual."
+            summary = "Delete a class attendance by ID (academy-scoped)",
+            description = "Deletes a ClassAttendance by its ID within the scope of the current academy (tenant)."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Eliminado correctamente"),
-            @ApiResponse(responseCode = "404", description = "No encontrado")
+            @ApiResponse(responseCode = "204", description = "Deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Not found")
     })
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {
         var deleted = classAttendanceCommandService.handle(new DeleteClassAttendanceCommand(id));

@@ -1,6 +1,9 @@
 package com.nistra.demy.platform.attendance.application.internal.commandservices;
 
 import com.nistra.demy.platform.attendance.application.internal.outboundservices.acl.ExternalIamService;
+import com.nistra.demy.platform.attendance.domain.exceptions.AcademyIdNotFoundException;
+import com.nistra.demy.platform.attendance.domain.exceptions.AttendanceNotFoundException;
+import com.nistra.demy.platform.attendance.domain.exceptions.ClassAttendanceAlreadyExistsException;
 import com.nistra.demy.platform.attendance.domain.model.aggregates.ClassAttendance;
 import com.nistra.demy.platform.attendance.domain.model.commands.CreateClassAttendanceCommand;
 import com.nistra.demy.platform.attendance.domain.model.commands.DeleteClassAttendanceCommand;
@@ -38,7 +41,7 @@ public class ClassAttendanceCommandServiceImpl  implements ClassAttendanceComman
     public Optional<ClassAttendance> handle(CreateClassAttendanceCommand command) {
 
         var academyId = externalIamService.fetchCurrentAcademyId()
-                .orElseThrow(() -> new IllegalStateException("No hay AcademyId en el contexto de IAM"));
+                .orElseThrow(AcademyIdNotFoundException::new);
 
 
         boolean exists = classAttendanceRepository
@@ -46,8 +49,7 @@ public class ClassAttendanceCommandServiceImpl  implements ClassAttendanceComman
                         academyId, command.classSessionId(), command.date()
                 );
         if (exists) {
-            throw new IllegalArgumentException(
-                    "Ya existe una asistencia para esa sesión y fecha en esta academia");
+            throw new ClassAttendanceAlreadyExistsException(command.classSessionId(),command.date());
         }
 
 
@@ -61,11 +63,11 @@ public class ClassAttendanceCommandServiceImpl  implements ClassAttendanceComman
     @Transactional
     public Optional<ClassAttendance> handle(UpdateAttendanceRecordStatusCommand command) {
         var academyId = externalIamService.fetchCurrentAcademyId()
-                .orElseThrow(() -> new IllegalStateException("No hay AcademyId en el contexto de IAM"));
+                .orElseThrow(AcademyIdNotFoundException::new);
 
         var aggregate = classAttendanceRepository
                 .findByIdAndAcademyId(command.classAttendanceId(), academyId)
-                .orElseThrow(() -> new IllegalArgumentException("Asistencia no encontrada o fuera de tu academia"));
+                .orElseThrow(AttendanceNotFoundException::new);
 
         aggregate.updateRecordStatus(command.dni(), command.newStatus());
 
@@ -76,7 +78,7 @@ public class ClassAttendanceCommandServiceImpl  implements ClassAttendanceComman
     @Transactional
     public boolean handle(DeleteClassAttendanceCommand command) {
         var academyId = externalIamService.fetchCurrentAcademyId()
-                .orElseThrow(() -> new IllegalStateException("No hay AcademyId en el contexto de IAM"));
+                .orElseThrow(AcademyIdNotFoundException::new);
 
         var maybe = classAttendanceRepository.findByIdAndAcademyId(command.id(), academyId);
         if (maybe.isEmpty()) return false;

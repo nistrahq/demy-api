@@ -1,6 +1,7 @@
 package com.nistra.demy.platform.attendance.application.internal.querysevices;
 
 import com.nistra.demy.platform.attendance.application.internal.outboundservices.acl.ExternalIamService;
+import com.nistra.demy.platform.attendance.domain.exceptions.AcademyIdNotFoundException;
 import com.nistra.demy.platform.attendance.domain.model.aggregates.ClassAttendance;
 import com.nistra.demy.platform.attendance.domain.model.queries.GetAllClassAttendancesByAcademyQuery;
 import com.nistra.demy.platform.attendance.domain.model.queries.GetClassAttendanceByIdQuery;
@@ -39,7 +40,7 @@ public class ClassAttendanceQueryServiceImpl implements ClassAttendanceQueryServ
     @Transactional(readOnly = true)
     public List<ClassAttendance> handle(GetAllClassAttendancesByAcademyQuery query) {
         AcademyId academyId = externalIamService.fetchCurrentAcademyId()
-                .orElseThrow(() -> new IllegalStateException("No authenticated academy id found"));
+                .orElseThrow(AcademyIdNotFoundException::new);;
         return repository.findAllByAcademyId(academyId);
     }
 
@@ -47,7 +48,7 @@ public class ClassAttendanceQueryServiceImpl implements ClassAttendanceQueryServ
     @Transactional(readOnly = true)
     public Optional<ClassAttendance> handle(GetClassAttendanceByIdQuery query) {
         AcademyId academyId = externalIamService.fetchCurrentAcademyId()
-                .orElseThrow(() -> new IllegalStateException("No authenticated academy id found"));
+                .orElseThrow(AcademyIdNotFoundException::new);;
         return repository.findByIdAndAcademyId(query.id(), academyId);
     }
 
