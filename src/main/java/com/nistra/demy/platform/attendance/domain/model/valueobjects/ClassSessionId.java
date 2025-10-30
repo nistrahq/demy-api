@@ -28,4 +28,5 @@ public record ClassSessionId(
         if (classSessionId != null && classSessionId <= 0)
             throw new IllegalArgumentException("ClassSession ID must be greater than zero");
     }
+    public Long value() { return classSessionId; }
 }
