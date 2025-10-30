@@ -5,6 +5,6 @@ import java.util.List;
 public record WeeklyScheduleResource(
         Long id,
         String name,
-        List<ScheduleResource> schedules
+        List<ScheduleResource> classSessions
 ) {
 }
