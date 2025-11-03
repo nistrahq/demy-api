@@ -29,17 +29,28 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * schedules, and with {@link WeeklyScheduleQueryService} for handling queries related to
  * retrieving weekly schedules and schedules by teacher.
  */
+
 @RestController
-@RequestMapping(value = "/api/v1/schedules", produces = APPLICATION_JSON_VALUE) // Ruta Actualizada
-@Tag(name = "Schedules", description = "Schedule Management Endpoints") // Etiqueta Actualizada
+@RequestMapping(value = "/api/v1/schedules", produces = APPLICATION_JSON_VALUE)
+@Tag(name = "Schedules", description = "Schedule Management Endpoints")
 public class WeeklySchedulesController {
 
     private final WeeklyScheduleCommandService weeklyScheduleCommandService;
     private final WeeklyScheduleQueryService weeklyScheduleQueryService;
+    // Nuevas dependencias inyectadas:
+    private final WeeklyScheduleResourceFromEntityAssembler weeklyScheduleResourceFromEntityAssembler;
+    private final ScheduleResourceFromEntityAssembler scheduleResourceFromEntityAssembler;
 
-    public WeeklySchedulesController(WeeklyScheduleCommandService weeklyScheduleCommandService, WeeklyScheduleQueryService weeklyScheduleQueryService) {
+    public WeeklySchedulesController(
+            WeeklyScheduleCommandService weeklyScheduleCommandService,
+            WeeklyScheduleQueryService weeklyScheduleQueryService,
+            WeeklyScheduleResourceFromEntityAssembler weeklyScheduleResourceFromEntityAssembler, // INYECTADO
+            ScheduleResourceFromEntityAssembler scheduleResourceFromEntityAssembler // INYECTADO
+    ) {
         this.weeklyScheduleCommandService = weeklyScheduleCommandService;
         this.weeklyScheduleQueryService = weeklyScheduleQueryService;
+        this.weeklyScheduleResourceFromEntityAssembler = weeklyScheduleResourceFromEntityAssembler;
+        this.scheduleResourceFromEntityAssembler = scheduleResourceFromEntityAssembler;
     }
 
     /**
@@ -57,20 +68,21 @@ public class WeeklySchedulesController {
     })
     public ResponseEntity<WeeklyScheduleResource> createSchedule(@RequestBody CreateWeeklyScheduleResource resource) {
         var createWeeklyScheduleCommand = CreateWeeklyScheduleCommandFromResourceAssembler.toCommandFromResource(resource);
-        var scheduleId = weeklyScheduleCommandService.handle(createWeeklyScheduleCommand); // Variable Renombrada
+        var scheduleId = weeklyScheduleCommandService.handle(createWeeklyScheduleCommand);
 
         if (scheduleId == null || scheduleId == 0L) {
             return ResponseEntity.badRequest().build();
         }
 
         var getWeeklyScheduleByIdQuery = new GetWeeklyScheduleByIdQuery(scheduleId);
-        var schedule = weeklyScheduleQueryService.handle(getWeeklyScheduleByIdQuery); // Variable Renombrada
+        var schedule = weeklyScheduleQueryService.handle(getWeeklyScheduleByIdQuery);
 
         if (schedule.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        var scheduleResource = WeeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(schedule.get()); // Variable Renombrada
+        // MODIFICADO: Uso el bean inyectado
+        var scheduleResource = weeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(schedule.get());
         return new ResponseEntity<>(scheduleResource, HttpStatus.CREATED);
     }
 
@@ -87,14 +99,11 @@ public class WeeklySchedulesController {
     })
     public ResponseEntity<List<WeeklyScheduleResource>> getAllSchedules() {
         var getAllWeeklySchedulesQuery = new GetAllWeeklySchedulesQuery();
-        var schedules = weeklyScheduleQueryService.handle(getAllWeeklySchedulesQuery); // Variable Renombrada
+        var schedules = weeklyScheduleQueryService.handle(getAllWeeklySchedulesQuery);
 
-//        if (schedules.isEmpty()) {
-//            return ResponseEntity.notFound().build();
-//        }
-
-        var scheduleResources = schedules.stream() // Variable Renombrada
-                .map(WeeklyScheduleResourceFromEntityAssembler::toResourceFromEntity)
+        var scheduleResources = schedules.stream()
+                // MODIFICADO: Uso el bean inyectado
+                .map(weeklyScheduleResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
 
         return ResponseEntity.ok(scheduleResources);
@@ -114,13 +123,14 @@ public class WeeklySchedulesController {
     })
     public ResponseEntity<WeeklyScheduleResource> getScheduleById(@PathVariable Long scheduleId) {
         var getWeeklyScheduleByIdQuery = new GetWeeklyScheduleByIdQuery(scheduleId);
-        var schedule = weeklyScheduleQueryService.handle(getWeeklyScheduleByIdQuery); // Variable Renombrada
+        var schedule = weeklyScheduleQueryService.handle(getWeeklyScheduleByIdQuery);
 
         if (schedule.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        var scheduleResource = WeeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(schedule.get()); // Variable Renombrada
+        // MODIFICADO: Uso el bean inyectado
+        var scheduleResource = weeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(schedule.get());
         return ResponseEntity.ok(scheduleResource);
     }
 
@@ -140,13 +150,14 @@ public class WeeklySchedulesController {
     })
     public ResponseEntity<WeeklyScheduleResource> updateSchedule(@PathVariable Long scheduleId, @RequestBody UpdateWeeklyScheduleNameResource resource) {
         var updateWeeklyScheduleCommand = UpdateWeeklyScheduleNameCommandFromResourceAssembler.toCommandFromResource(scheduleId, resource);
-        var updatedSchedule = weeklyScheduleCommandService.handle(updateWeeklyScheduleCommand); // Variable Renombrada
+        var updatedSchedule = weeklyScheduleCommandService.handle(updateWeeklyScheduleCommand);
 
         if (updatedSchedule.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         var updatedWeeklyScheduleEntity = updatedSchedule.get();
-        var updatedScheduleResource = WeeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(updatedWeeklyScheduleEntity); // Variable Renombrada
+        // MODIFICADO: Uso el bean inyectado
+        var updatedScheduleResource = weeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(updatedWeeklyScheduleEntity);
         return ResponseEntity.ok(updatedScheduleResource);
     }
 
@@ -190,7 +201,7 @@ public class WeeklySchedulesController {
             return ResponseEntity.notFound().build();
         }
         var updatedWeeklyScheduleEntity = updatedSchedule.get();
-        var updatedScheduleResource = WeeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(updatedWeeklyScheduleEntity); // Variable Renombrada
+        var updatedScheduleResource = weeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(updatedWeeklyScheduleEntity); // Corregido: Usa inyectado
         return ResponseEntity.ok(updatedScheduleResource);
     }
 
@@ -215,7 +226,7 @@ public class WeeklySchedulesController {
             return ResponseEntity.notFound().build();
         }
         var updatedWeeklyScheduleEntity = updatedSchedule.get();
-        var updatedScheduleResource = WeeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(updatedWeeklyScheduleEntity); // Variable Renombrada
+        var updatedScheduleResource = weeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(updatedWeeklyScheduleEntity); // Corregido: Usa inyectado
         return ResponseEntity.ok(updatedScheduleResource);
     }
 
@@ -240,7 +251,7 @@ public class WeeklySchedulesController {
         }
 
         var classSessionResources = classSessions.stream() // Variable Renombrada
-                .map(ScheduleResourceFromEntityAssembler::toResourceFromEntity)
+                .map(scheduleResourceFromEntityAssembler::toResourceFromEntity) // Corregido: Usa inyectado
                 .toList();
 
         return ResponseEntity.ok(classSessionResources);
@@ -259,7 +270,7 @@ public class WeeklySchedulesController {
             @ApiResponse(responseCode = "200", description = "Class Session updated successfully"), // Texto Actualizado
             @ApiResponse(responseCode = "404", description = "Class Session not found") // Texto Actualizado
     })
-    public ResponseEntity<?> updateClassSession(
+    public ResponseEntity<ScheduleResource> updateClassSession(
             @PathVariable Long classSessionId,
             @RequestBody UpdateScheduleResource resource) {
         var command = UpdateScheduleCommandFromResourceAssembler.toCommandFromResource(classSessionId, resource);
@@ -268,7 +279,7 @@ public class WeeklySchedulesController {
             return ResponseEntity.notFound().build();
         }
         var updatedClassSession = updatedClassSessionOpt.get();
-        var classSessionResource = ScheduleResourceFromEntityAssembler.toResourceFromEntity(updatedClassSession); // Variable Renombrada
+        var classSessionResource = scheduleResourceFromEntityAssembler.toResourceFromEntity(updatedClassSession); // Corregido: Usa inyectado
         return ResponseEntity.ok(classSessionResource);
     }
 }

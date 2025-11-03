@@ -1,7 +1,7 @@
 package com.nistra.demy.platform.scheduling.interfaces.rest.transform;
-
-import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherByFullNameQuery;
+// Imports de Servicios y Queries
 import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherByIdQuery;
+import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherEmailAddressByUserIdQuery;
 import com.nistra.demy.platform.institution.domain.services.TeacherQueryService;
 import com.nistra.demy.platform.scheduling.domain.model.entities.Schedule;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetClassroomByIdQuery;
@@ -9,82 +9,77 @@ import com.nistra.demy.platform.scheduling.domain.model.queries.GetCourseByIdQue
 import com.nistra.demy.platform.scheduling.domain.services.ClassroomQueryService;
 import com.nistra.demy.platform.scheduling.domain.services.CourseQueryService;
 import com.nistra.demy.platform.scheduling.interfaces.rest.resources.ScheduleResource;
-import jakarta.annotation.PostConstruct;
+// Imports de Ensambladores Anidados
+import com.nistra.demy.platform.institution.interfaces.rest.transform.TeacherResourceFromEntityAssembler;
+// Eliminados: jakarta.annotation.PostConstruct, se usa inyección directa
 import org.springframework.stereotype.Component;
 
-@Component
+/**
+ * Ensamblador para convertir una entidad Schedule a un ScheduleResource detallado.
+ * Es un componente inyectable que coordina la obtención de datos de otros contextos
+ * (Course, Classroom, Teacher) para construir el recurso anidado.
+ */
+@Component // MODIFICADO: Es un componente de Spring
 public class ScheduleResourceFromEntityAssembler {
 
-    // 1. Variables estáticas para almacenar los servicios inyectados
-    private static CourseQueryService staticCourseQueryService;
-    private static ClassroomQueryService staticClassroomQueryService;
-    private static TeacherQueryService staticTeacherQueryService;
-    // 2. Variables de instancia para inyección de Spring (constructor)
     private final CourseQueryService courseQueryService;
     private final ClassroomQueryService classroomQueryService;
     private final TeacherQueryService teacherQueryService;
 
-    // Constructor para que Spring inyecte los servicios
+    // Inyectar ensambladores de recursos anidados (para delegar el mapeo del sub-recurso)
+    private final CourseResourceFromEntityAssembler courseResourceAssembler;
+    private final ClassroomResourceFromEntityAssembler classroomResourceAssembler;
+    private final TeacherResourceFromEntityAssembler teacherResourceAssembler;
+
+    // Constructor con inyección de todas las dependencias
     public ScheduleResourceFromEntityAssembler(
             CourseQueryService courseQueryService,
             ClassroomQueryService classroomQueryService,
-            TeacherQueryService teacherQueryService) {
+            TeacherQueryService teacherQueryService,
+            CourseResourceFromEntityAssembler courseResourceAssembler,
+            ClassroomResourceFromEntityAssembler classroomResourceAssembler,
+            TeacherResourceFromEntityAssembler teacherResourceAssembler) {
         this.courseQueryService = courseQueryService;
         this.classroomQueryService = classroomQueryService;
         this.teacherQueryService = teacherQueryService;
-    }
-
-    // 3. Inicializa las variables estáticas después de la inyección
-    @PostConstruct
-    public void initStaticServices() {
-        staticCourseQueryService = this.courseQueryService;
-        staticClassroomQueryService = this.classroomQueryService;
-        staticTeacherQueryService = this.teacherQueryService;
+        this.courseResourceAssembler = courseResourceAssembler;
+        this.classroomResourceAssembler = classroomResourceAssembler;
+        this.teacherResourceAssembler = teacherResourceAssembler;
     }
 
     /**
-     * Convierte una entidad Schedule en un ScheduleResource de FORMA ESTÁTICA,
-     * usando los servicios almacenados estáticamente para enriquecer los datos.
+     * Convierte una entidad Schedule en un ScheduleResource con recursos anidados.
      */
-    public static ScheduleResource toResourceFromEntity(Schedule entity) {
-        // Validación de contexto: asegurar que los servicios estáticos estén inicializados
-        if (staticCourseQueryService == null || staticClassroomQueryService == null || staticTeacherQueryService == null) {
-            throw new IllegalStateException("The static services have not been initialized by Spring context. Check if the application is running.");
-        }
-
-        // IDs (se mantienen en el recurso)
+    public ScheduleResource toResourceFromEntity(Schedule entity) { // MODIFICADO: Ya no es static
         Long courseId = entity.getCourseId().id();
         Long classroomId = entity.getClassroomId().id();
         Long teacherId = entity.getTeacherId().userId();
 
-        // Obtener detalles de Curso, Salón y Profesor usando los servicios estáticos
-        var course = staticCourseQueryService.handle(new GetCourseByIdQuery(courseId))
+        // 1. Obtener y ensamblar CourseResource
+        var courseEntity = courseQueryService.handle(new GetCourseByIdQuery(courseId))
                 .orElseThrow(() -> new IllegalStateException("Course not found for ID: " + courseId));
+        var courseResource = courseResourceAssembler.toResourceFromEntity(courseEntity);
 
-        var classroom = staticClassroomQueryService.handle(new GetClassroomByIdQuery(classroomId))
+        // 2. Obtener y ensamblar ClassroomResource
+        var classroomEntity = classroomQueryService.handle(new GetClassroomByIdQuery(classroomId))
                 .orElseThrow(() -> new IllegalStateException("Classroom not found for ID: " + classroomId));
+        var classroomResource = classroomResourceAssembler.toResourceFromEntity(classroomEntity);
 
-        var teacher = staticTeacherQueryService.handle(new GetTeacherByIdQuery(teacherId))
+        // 3. Obtener el email y ensamblar TeacherResource
+        var teacherEntity = teacherQueryService.handle(new GetTeacherByIdQuery(teacherId))
                 .orElseThrow(() -> new IllegalStateException("Teacher UserAccount not found for ID: " + teacherId));
+        var emailAddress = teacherQueryService.handle(new GetTeacherEmailAddressByUserIdQuery(teacherEntity.getUserId()))
+                .orElseThrow(() -> new IllegalStateException("Email de Teacher no encontrado para User ID: " + teacherEntity.getUserId().userId()));
+        var teacherResource = teacherResourceAssembler.toResourceFromEntity(teacherEntity, emailAddress);
 
         return new ScheduleResource(
                 entity.getId(),
                 entity.getTimeRange().startTime().toString(),
                 entity.getTimeRange().endTime().toString(),
                 entity.getDayOfWeek().name(),
-
-                // IDs Originales
-                courseId,
-                classroomId,
-                teacherId,
-
-                // Campos Descriptivos
-                course.getName(),
-                course.getCode(),
-                teacher.getPersonName().firstName(),
-                teacher.getPersonName().lastName(),
-                classroom.getCode(),
-                classroom.getCampus()
+                courseResource,
+                classroomResource,
+                teacherResource
         );
     }
 }

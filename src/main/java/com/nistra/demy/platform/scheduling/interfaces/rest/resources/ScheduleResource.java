@@ -1,8 +1,11 @@
 package com.nistra.demy.platform.scheduling.interfaces.rest.resources;
 
+
+import com.nistra.demy.platform.institution.interfaces.rest.resources.TeacherResource;
+
 /**
- * Recurso híbrido para una sesión de horario, con IDs necesarios para comandos
- * y datos enriquecidos de Curso, Profesor y Salón para la visualización.
+ * Recurso detallado para una sesión de horario, con información anidada de
+ * Curso, Salón y Profesor para la visualización.
  */
 public record ScheduleResource(
         Long id,
@@ -10,17 +13,9 @@ public record ScheduleResource(
         String endTime,
         String dayOfWeek,
 
-        // IDs originales (Necesarias para comandos PUT, DELETE)
-        Long courseId,
-        Long classroomId,
-        Long teacherId,
-
-        // Campos descriptivos (Nuevos para la visualización)
-        String courseName,
-        String courseCode,
-        String teacherFirstName,
-        String teacherLastName,
-        String classroomCode,
-        String classroomCampus
+        // Recursos anidados
+        CourseResource course, // MODIFICADO
+        ClassroomResource classroom, // MODIFICADO
+        TeacherResource teacher // MODIFICADO (ahora usa el recurso completo de Teacher)
 ) {
 }
