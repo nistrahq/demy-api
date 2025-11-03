@@ -1,6 +1,8 @@
 package com.nistra.demy.platform.scheduling.application.internal.commandservices;
 
 import com.nistra.demy.platform.institution.application.internal.outboundservices.acl.ExternalIamService;
+import com.nistra.demy.platform.scheduling.domain.exceptions.ClassroomAlreadyExistsException;
+import com.nistra.demy.platform.scheduling.domain.exceptions.ClassroomNotFoundException;
 import com.nistra.demy.platform.scheduling.domain.model.aggregates.Classroom;
 import com.nistra.demy.platform.scheduling.domain.model.commands.CreateClassroomCommand;
 import com.nistra.demy.platform.scheduling.domain.model.commands.DeleteClassroomCommand;
@@ -44,7 +46,7 @@ public class ClassroomCommandServiceImpl implements ClassroomCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
 
         if (classroomRepository.existsByCodeAndAcademyId(command.code(),academyId)) {
-            throw new IllegalArgumentException("Classroom with code " + command.code() + " already exists");
+            throw new ClassroomAlreadyExistsException(command.code());
         }
 
         var classroom = new Classroom(command,academyId);
@@ -70,18 +72,18 @@ public class ClassroomCommandServiceImpl implements ClassroomCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
 
         if (classroomRepository.existsByCodeAndIdNotAndAcademyId(command.code(), command.classroomId(), academyId)) {
-            throw new IllegalArgumentException("Classroom with code " + command.code() + " already exists");
+            throw new ClassroomAlreadyExistsException(command.code());
         }
 
         var result = classroomRepository.findById(command.classroomId());
         if (result.isEmpty()) {
-            throw new IllegalArgumentException("Classroom with id " + command.classroomId() + " not found");
+            throw new ClassroomNotFoundException(command.classroomId());
         }
 
         var classroomToUpdate = result.get();
 
         if (!classroomToUpdate.getAcademyId().equals(academyId)) {
-            throw new IllegalArgumentException("Classroom with id " + command.classroomId() + " does not belong to the current academy");
+            throw new ClassroomNotFoundException(command.classroomId());
         }
 
         try {
@@ -104,7 +106,7 @@ public class ClassroomCommandServiceImpl implements ClassroomCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
 
         var classroom = classroomRepository.findById(command.classroomId())
-                .orElseThrow(() -> new IllegalArgumentException("Classroom with id " + command.classroomId() + " not found"));
+                .orElseThrow(() -> new ClassroomNotFoundException(command.classroomId()));
 
         if (!classroom.getAcademyId().equals(academyId)) {
             throw new IllegalArgumentException("Classroom with id " + command.classroomId() + " does not belong to the current academy");

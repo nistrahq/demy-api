@@ -1,6 +1,8 @@
 package com.nistra.demy.platform.scheduling.application.internal.commandservices;
 
 import com.nistra.demy.platform.institution.application.internal.outboundservices.acl.ExternalIamService;
+import com.nistra.demy.platform.scheduling.domain.exceptions.CourseAlreadyExistsException;
+import com.nistra.demy.platform.scheduling.domain.exceptions.CourseNotFoundException;
 import com.nistra.demy.platform.scheduling.domain.model.aggregates.Course;
 import com.nistra.demy.platform.scheduling.domain.model.commands.CreateCourseCommand;
 import com.nistra.demy.platform.scheduling.domain.model.commands.DeleteCourseCommand;
@@ -44,7 +46,7 @@ public class CourseCommandServiceImpl implements CourseCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
 
         if (courseRepository.existsByNameAndAcademyId(command.name(),academyId)) {
-            throw new IllegalArgumentException("Course with code " + command.name() + " already exists");
+            throw new CourseAlreadyExistsException(command.name());
         }
 
         var course = new Course(command,academyId);
@@ -70,18 +72,18 @@ public class CourseCommandServiceImpl implements CourseCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
 
         if (courseRepository.existsByNameAndIdNotAndAcademyId(command.name(), command.courseId(), academyId)) {
-            throw new IllegalArgumentException("Course with name " + command.name() + " already exists");
+            throw new CourseAlreadyExistsException(command.name());
         }
 
         var result = courseRepository.findById(command.courseId());
         if (result.isEmpty()) {
-            throw new IllegalArgumentException("Course with id " + command.courseId() + " not found");
+            throw new CourseNotFoundException(command.courseId());
         }
 
         var courseToUpdate = result.get();
 
         if (!courseToUpdate.getAcademyId().equals(academyId)) {
-            throw new IllegalArgumentException("Course with id " + command.courseId() + " does not belong to the current academy");
+            throw new CourseNotFoundException(command.courseId());
         }
         try {
             var updatedCourse = courseRepository.save(courseToUpdate.updateCourse(command));
@@ -104,10 +106,10 @@ public class CourseCommandServiceImpl implements CourseCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Academy context not found for the current user"));
 
         var course = courseRepository.findById(command.courseId())
-                .orElseThrow(() -> new IllegalArgumentException("Course with id " + command.courseId() + " not found"));
+                .orElseThrow(() -> new CourseNotFoundException(command.courseId()));
 
         if (!course.getAcademyId().equals(academyId)) {
-            throw new IllegalArgumentException("Course with id " + command.courseId() + " does not belong to the current academy");
+            throw new CourseNotFoundException(command.courseId());
         }
 
         try {

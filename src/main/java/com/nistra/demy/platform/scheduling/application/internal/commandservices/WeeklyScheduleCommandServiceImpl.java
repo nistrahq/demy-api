@@ -2,6 +2,9 @@ package com.nistra.demy.platform.scheduling.application.internal.commandservices
 
 import com.nistra.demy.platform.institution.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.scheduling.application.internal.outboundservices.acl.ExternalInstitutionService;
+import com.nistra.demy.platform.scheduling.domain.exceptions.ScheduleTeacherNotFoundException;
+import com.nistra.demy.platform.scheduling.domain.exceptions.WeeklyScheduleAlreadyExistsException;
+import com.nistra.demy.platform.scheduling.domain.exceptions.WeeklyScheduleNotFoundException;
 import com.nistra.demy.platform.scheduling.domain.model.aggregates.WeeklySchedule;
 import com.nistra.demy.platform.scheduling.domain.model.commands.*;
 import com.nistra.demy.platform.scheduling.domain.model.entities.Schedule;
@@ -62,7 +65,7 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
         var academyId = getContextAcademyId();
 
         if (weeklyScheduleRepository.existsByNameAndAcademyId(command.name(), academyId)) {
-            throw new IllegalArgumentException("Weekly schedule with name " + command.name() + " already exists");
+            throw new WeeklyScheduleAlreadyExistsException(command.name());
         }
 
         var weeklySchedule = new WeeklySchedule(command, academyId);
@@ -84,17 +87,17 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
 
         var weeklyScheduleOpt = weeklyScheduleRepository.findById(command.weeklyScheduleId());
         if (weeklyScheduleOpt.isEmpty()) {
-            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " not found");
+            throw new WeeklyScheduleNotFoundException(command.weeklyScheduleId());
         }
 
         var weeklySchedule = weeklyScheduleOpt.get();
 
         if (!weeklySchedule.getAcademyId().equals(academyId)) {
-            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " does not belong to the current academy");
+            throw new WeeklyScheduleNotFoundException(command.weeklyScheduleId());
         }
 
         if (weeklyScheduleRepository.existsByNameAndIdNotAndAcademyId(command.name(), command.weeklyScheduleId(), academyId)) {
-            throw new IllegalArgumentException("Weekly schedule with name " + command.name() + " already exists in this academy");
+            throw new WeeklyScheduleAlreadyExistsException(command.name());
         }
 
         weeklySchedule.updateName(command.name());
@@ -117,20 +120,20 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
 
         var weeklyScheduleOpt = weeklyScheduleRepository.findById(command.weeklyScheduleId());
         if (weeklyScheduleOpt.isEmpty()) {
-            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " not found");
+            throw new WeeklyScheduleNotFoundException(command.weeklyScheduleId());
         }
 
         var weeklySchedule = weeklyScheduleOpt.get();
 
         if (!weeklySchedule.getAcademyId().equals(academyId)) {
-            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " does not belong to the current academy");
+            throw new WeeklyScheduleNotFoundException(command.weeklyScheduleId());
         }
 
         var dayOfWeek = DayOfWeek.valueOf(command.dayOfWeek().toUpperCase());
 
         UserId teacherId = externalInstitutionService
                 .fetchTeacherIdByFullName(command.teacherFirstName(), command.teacherLastName())
-                .orElseThrow(() -> new IllegalArgumentException("No teacher with that fullname was found"));
+                .orElseThrow(() -> new ScheduleTeacherNotFoundException(command.teacherFirstName(), command.teacherLastName()));
 
         weeklySchedule.addSchedule(
                 command.startTime(),
@@ -159,13 +162,13 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
 
         var weeklyScheduleOpt = weeklyScheduleRepository.findById(command.weeklyScheduleId());
         if (weeklyScheduleOpt.isEmpty()) {
-            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " not found");
+            throw new WeeklyScheduleNotFoundException(command.weeklyScheduleId());
         }
 
         var weeklySchedule = weeklyScheduleOpt.get();
 
         if (!weeklySchedule.getAcademyId().equals(academyId)) {
-            throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " does not belong to the current academy");
+            throw new WeeklyScheduleNotFoundException(command.weeklyScheduleId());
         }
 
         weeklySchedule.removeSchedule(command.scheduleId());
@@ -184,7 +187,7 @@ public class WeeklyScheduleCommandServiceImpl implements WeeklyScheduleCommandSe
         var academyId = getContextAcademyId();
 
         var weeklySchedule = weeklyScheduleRepository.findById(command.weeklyScheduleId())
-                .orElseThrow(() -> new IllegalArgumentException("WeeklySchedule with id " + command.weeklyScheduleId() + " not found"));
+                .orElseThrow(() -> new WeeklyScheduleNotFoundException(command.weeklyScheduleId()));
 
         if (!weeklySchedule.getAcademyId().equals(academyId)) {
             throw new IllegalArgumentException("Weekly schedule with id " + command.weeklyScheduleId() + " does not belong to the current academy");
