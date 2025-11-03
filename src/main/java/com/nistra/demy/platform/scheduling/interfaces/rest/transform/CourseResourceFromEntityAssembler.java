@@ -2,7 +2,9 @@ package com.nistra.demy.platform.scheduling.interfaces.rest.transform;
 
 import com.nistra.demy.platform.scheduling.domain.model.aggregates.Course;
 import com.nistra.demy.platform.scheduling.interfaces.rest.resources.CourseResource;
+import org.springframework.stereotype.Component;
 
+@Component // NECESARIO
 public class CourseResourceFromEntityAssembler {
     /**
      * Converts a Course entity to a CourseResource
