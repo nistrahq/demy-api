@@ -1,5 +1,7 @@
 package com.nistra.demy.platform.accountingfinance.domain.model.valueobjects;
 
+import com.nistra.demy.platform.accountingfinance.domain.exceptions.InvalidTransactionTypeException;
+
 public enum TransactionType {
     INCOME,
     EXPENSE;
@@ -11,6 +13,6 @@ public enum TransactionType {
                 return tt;
             }
         }
-        throw new IllegalArgumentException("Unknown transaction type: " + type);
+        throw new InvalidTransactionTypeException(type);
     }
 }

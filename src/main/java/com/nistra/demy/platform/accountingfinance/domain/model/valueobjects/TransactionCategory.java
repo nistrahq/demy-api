@@ -1,5 +1,7 @@
 package com.nistra.demy.platform.accountingfinance.domain.model.valueobjects;
 
+import com.nistra.demy.platform.accountingfinance.domain.exceptions.InvalidTransactionCategoryException;
+
 public enum TransactionCategory {
     STUDENT_ENROLLMENT,
     STUDENT_MONTHLY_FEE,
@@ -15,6 +17,6 @@ public enum TransactionCategory {
                 return tc;
             }
         }
-        throw new IllegalArgumentException("Unknown transaction category: " + category);
+        throw new InvalidTransactionCategoryException(category);
     }
 }

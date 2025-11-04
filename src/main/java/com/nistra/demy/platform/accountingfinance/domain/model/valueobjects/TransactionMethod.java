@@ -1,5 +1,7 @@
 package com.nistra.demy.platform.accountingfinance.domain.model.valueobjects;
 
+import com.nistra.demy.platform.accountingfinance.domain.exceptions.InvalidTransactionMethodException;
+
 public enum TransactionMethod {
     CASH,
     CREDIT_CARD,
@@ -15,6 +17,6 @@ public enum TransactionMethod {
                 return tm;
             }
         }
-        throw new IllegalArgumentException("Unknown transaction method: " + method);
+        throw new InvalidTransactionMethodException(method);
     }
 }
