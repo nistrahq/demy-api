@@ -3,6 +3,8 @@ package com.nistra.demy.platform.institution.application.internal.queryservices;
 import com.nistra.demy.platform.institution.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.institution.domain.model.aggregates.Teacher;
 import com.nistra.demy.platform.institution.domain.model.queries.GetAllTeachersQuery;
+import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherByFullNameQuery;
+import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherByIdQuery;
 import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherEmailAddressByUserIdQuery;
 import com.nistra.demy.platform.institution.domain.services.TeacherQueryService;
 import com.nistra.demy.platform.institution.infrastructure.persistence.jpa.repositories.TeacherRepository;
@@ -28,6 +30,18 @@ public class TeacherQueryServiceImpl implements TeacherQueryService {
         var academyId = externalIamService.fetchCurrentAcademyId()
                 .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
         return teacherRepository.findAllByAcademyId(academyId);
+    }
+
+    @Override
+    public Optional<Teacher> handle(GetTeacherByIdQuery query) {
+        return teacherRepository.findById(query.teacherId());
+    }
+
+    @Override
+    public Optional<Teacher> handle(GetTeacherByFullNameQuery query) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("No academy context found for the current user"));
+        return teacherRepository.findByPersonNameAndAcademyId(query.personName(),academyId);
     }
 
     @Override

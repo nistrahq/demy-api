@@ -64,7 +64,8 @@ public class OpenApiConfiguration {
         return new OpenAPI()
                 .openapi("3.0.1")
                 .info(info)
-                .servers(List.of(new Server().url("https://demy-api-production.up.railway.app")))
+                // TODO: Update server URL when deploying to production
+                // .servers(List.of(new Server().url("https://demy-api-production.up.railway.app")))
                 .addSecurityItem(securityRequirement)
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication", jwtSecurityScheme));
