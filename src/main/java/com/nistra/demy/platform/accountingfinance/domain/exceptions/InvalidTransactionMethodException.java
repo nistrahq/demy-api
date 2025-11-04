@@ -4,6 +4,6 @@ import com.nistra.demy.platform.shared.domain.exceptions.DomainException;
 
 public class InvalidTransactionMethodException extends DomainException {
     public InvalidTransactionMethodException(String method) {
-        super("Invalid transaction method %s".formatted(method));
+        super("Invalid transaction method %s".formatted(method), method);
     }
 }
