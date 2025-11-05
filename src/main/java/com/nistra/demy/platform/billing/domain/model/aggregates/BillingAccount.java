@@ -2,11 +2,14 @@ package com.nistra.demy.platform.billing.domain.model.aggregates;
 
 import com.nistra.demy.platform.billing.domain.model.commands.AssignInvoiceToBillingAccountCommand;
 import com.nistra.demy.platform.billing.domain.model.commands.CreateBillingAccountCommand;
+import com.nistra.demy.platform.billing.domain.model.commands.UpdateInvoiceCommand;
 import com.nistra.demy.platform.billing.domain.model.entities.Invoice;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.AccountStatus;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceStatus;
+import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceType;
 import com.nistra.demy.platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.Money;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.StudentId;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -69,5 +72,22 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
 
     public List<Invoice> getInvoices() {
         return Collections.unmodifiableList(invoices);
+    }
+
+    public Invoice updateInvoice(UpdateInvoiceCommand command) {
+        var invoiceToUpdate = this.getInvoices().stream()
+                .filter(i -> i.getId().equals(command.invoiceId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Invoice ID %d not found in Billing Account %d"
+                        .formatted(command.invoiceId(), this.getId())));
+        if (invoiceToUpdate.getStatus() == InvoiceStatus.PAID) {
+            throw new IllegalStateException("Cannot update a paid invoice.");
+        }
+        invoiceToUpdate.setInvoiceType(command.invoiceType());
+        invoiceToUpdate.setAmount(command.amount());
+        invoiceToUpdate.setDescription(command.description());
+        invoiceToUpdate.setStatus(command.status());
+
+        return invoiceToUpdate;
     }
 }

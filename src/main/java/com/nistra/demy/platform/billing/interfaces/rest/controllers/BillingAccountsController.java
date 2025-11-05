@@ -8,14 +8,8 @@ import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByStu
 import com.nistra.demy.platform.billing.domain.model.queries.GetBillingAccountByIdQuery;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountCommandService;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountQueryService;
-import com.nistra.demy.platform.billing.interfaces.rest.resources.AssignInvoiceResource;
-import com.nistra.demy.platform.billing.interfaces.rest.resources.BillingAccountResource;
-import com.nistra.demy.platform.billing.interfaces.rest.resources.CreateBillingAccountResource;
-import com.nistra.demy.platform.billing.interfaces.rest.resources.InvoiceResource;
-import com.nistra.demy.platform.billing.interfaces.rest.transform.AssignInvoiceCommandFromResourceAssembler;
-import com.nistra.demy.platform.billing.interfaces.rest.transform.BillingAccountResourceFromEntityAssembler;
-import com.nistra.demy.platform.billing.interfaces.rest.transform.CreateBillingAccountCommandFromResourceAssembler;
-import com.nistra.demy.platform.billing.interfaces.rest.transform.InvoiceResourceFromEntityAssembler;
+import com.nistra.demy.platform.billing.interfaces.rest.resources.*;
+import com.nistra.demy.platform.billing.interfaces.rest.transform.*;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.StudentId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -204,5 +198,35 @@ public class BillingAccountsController {
 
         billingAccountCommandService.handle(new DeleteInvoiceCommand(billingAccountId, invoiceId));
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Update invoice details",
+            description = "Updates non-date fields (type, amount, description, status) of a specific invoice.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Invoice updated successfully",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = InvoiceResource.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid data or business rule violation (e.g., trying to update a paid invoice)", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "Invoice or billing account not found", content = @Content)
+            }
+    )
+
+    @PutMapping("/{billingAccountId}/invoices/{invoiceId}")
+    public ResponseEntity<InvoiceResource> updateInvoice(
+            @Parameter(description = "Billing account identifier", example = "1")
+            @PathVariable Long billingAccountId,
+            @Parameter(description = "Invoice identifier", example = "5")
+            @PathVariable Long invoiceId,
+            @RequestBody UpdateInvoiceResource resource
+    ) {
+        var command = UpdateInvoiceCommandFromResourceAssembler.toCommand(
+                billingAccountId,
+                invoiceId,
+                resource
+        );
+        var updatedInvoice = billingAccountCommandService.handle(command)
+                .orElseThrow(() -> new RuntimeException("Update failed: Invoice could not be retrieved."));
+        var responseResource = InvoiceResourceFromEntityAssembler.toResourceFromEntity(updatedInvoice);
+        return ResponseEntity.ok(responseResource);
     }
 }

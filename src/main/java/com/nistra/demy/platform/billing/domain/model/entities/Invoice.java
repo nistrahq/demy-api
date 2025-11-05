@@ -59,4 +59,13 @@ public class Invoice extends AuditableModel {
         this.status = status;
         this.billingAccount = billingAccount;
     }
+
+    public void setInvoiceType(InvoiceType invoiceType) {
+    }
+
+    public void setAmount(Money amount) {
+    }
+
+    public void setDescription(String description) {
+    }
 }

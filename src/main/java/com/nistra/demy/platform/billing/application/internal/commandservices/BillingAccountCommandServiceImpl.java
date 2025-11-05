@@ -2,10 +2,7 @@ package com.nistra.demy.platform.billing.application.internal.commandservices;
 
 import com.nistra.demy.platform.billing.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.billing.domain.model.aggregates.BillingAccount;
-import com.nistra.demy.platform.billing.domain.model.commands.AssignInvoiceToBillingAccountCommand;
-import com.nistra.demy.platform.billing.domain.model.commands.CreateBillingAccountCommand;
-import com.nistra.demy.platform.billing.domain.model.commands.DeleteInvoiceCommand;
-import com.nistra.demy.platform.billing.domain.model.commands.MarkInvoiceAsPaidCommand;
+import com.nistra.demy.platform.billing.domain.model.commands.*;
 import com.nistra.demy.platform.billing.domain.model.entities.Invoice;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceStatus;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountCommandService;
@@ -64,6 +61,16 @@ public class BillingAccountCommandServiceImpl implements BillingAccountCommandSe
         billingAccountRepository.save(billingAccount);
         var invoice = billingAccount.findInvoiceById(command.invoiceId());
         return Optional.of(invoice);
+    }
+
+    @Override
+    @Transactional
+    public Optional<Invoice> handle(UpdateInvoiceCommand command) {
+        var billingAccount = billingAccountRepository.findById(command.billingAccountId())
+                .orElseThrow(() -> new RuntimeException("Billing account not found"));
+        var updatedInvoice = billingAccount.updateInvoice(command);
+        billingAccountRepository.save(billingAccount);
+        return Optional.of(updatedInvoice);
     }
 
     @Override
