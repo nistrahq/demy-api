@@ -12,4 +12,5 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     boolean existsStudentByDni(DniNumber dniNumber);
     Optional<Student> findByDni(DniNumber dniNumber);
     List<Student> findAllByAcademyId(AcademyId academyId);
+    boolean existsByDniAndIdNotAndAcademyId(DniNumber dni, Long id, AcademyId academyId);
 }
