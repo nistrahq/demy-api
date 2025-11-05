@@ -1,17 +1,16 @@
 package com.nistra.demy.platform.accountingfinance.interfaces.rest.controllers;
 
+import com.nistra.demy.platform.accountingfinance.domain.model.queries.GetAllTransactionsQuery;
 import com.nistra.demy.platform.accountingfinance.domain.services.TransactionCommandService;
-import com.nistra.demy.platform.accountingfinance.interfaces.rest.resources.RegisterTransactionResource;
-import com.nistra.demy.platform.accountingfinance.interfaces.rest.resources.TransactionResource;
-import com.nistra.demy.platform.accountingfinance.interfaces.rest.transform.RegisterTransactionCommandFromResourceAssembler;
-import com.nistra.demy.platform.accountingfinance.interfaces.rest.transform.TransactionResourceFromEntityAssembler;
+import com.nistra.demy.platform.accountingfinance.domain.services.TransactionQueryService;
+import com.nistra.demy.platform.accountingfinance.interfaces.rest.resources.*;
+import com.nistra.demy.platform.accountingfinance.interfaces.rest.transform.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -21,11 +20,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class TransactionsController {
 
     private final TransactionCommandService transactionCommandService;
+    private final TransactionQueryService transactionQueryService;
 
     public TransactionsController(
-            TransactionCommandService transactionCommandService
+            TransactionCommandService transactionCommandService,
+            TransactionQueryService transactionQueryService
     ) {
         this.transactionCommandService = transactionCommandService;
+        this.transactionQueryService = transactionQueryService;
     }
 
     @PostMapping
@@ -36,5 +38,22 @@ public class TransactionsController {
         var transactionEntity = transaction.get();
         var transactionResource = TransactionResourceFromEntityAssembler.toResourceFromEntity(transactionEntity);
         return new ResponseEntity<>(transactionResource, HttpStatus.CREATED);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TransactionResource>> getAllTransactions(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String method,
+            @RequestParam(required = false) String type
+    ) {
+        var getAllTransactionsQuery = new GetAllTransactionsQuery(
+                TransactionCategoryFromResourceAssembler.toValueObjectFromString(category),
+                TransactionMethodResourceAssembler.toValueObjectFromString(method),
+                TransactionTypeFromResourceAssembler.toValueObjectFromString(type)
+        );
+        var transactions = transactionQueryService.handle(getAllTransactionsQuery);
+        if (transactions.isEmpty()) return ResponseEntity.ok().body(List.of());
+        var transactionResources = TransactionResourceFromEntityAssembler.toResourcesFromEntities(transactions);
+        return new ResponseEntity<>(transactionResources, HttpStatus.OK);
     }
 }
