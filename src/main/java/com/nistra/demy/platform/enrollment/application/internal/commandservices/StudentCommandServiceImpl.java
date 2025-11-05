@@ -1,6 +1,8 @@
 package com.nistra.demy.platform.enrollment.application.internal.commandservices;
 
 import com.nistra.demy.platform.enrollment.application.internal.outboundservices.acl.ExternalIamService;
+import com.nistra.demy.platform.enrollment.domain.exceptions.StudentAlreadyExistsException;
+import com.nistra.demy.platform.enrollment.domain.exceptions.StudentNotFoundException;
 import com.nistra.demy.platform.enrollment.domain.model.aggregates.Student;
 import com.nistra.demy.platform.enrollment.domain.model.commands.CreateStudentCommand;
 import com.nistra.demy.platform.enrollment.domain.model.commands.DeleteStudentCommand;
@@ -26,15 +28,15 @@ public class StudentCommandServiceImpl implements StudentCommandService {
 
     @Override
     public Long handle(CreateStudentCommand command) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalArgumentException("Academy not found"));
+
         if (studentRepository.existsStudentByDni(command.dni())) {
-            throw new IllegalArgumentException("Student with DNI %s already exists".formatted(command.dni()));
+            throw new StudentAlreadyExistsException(command.dni());
         }
 
         var userId = externalIamService.registerStudent(command.emailAddress().email())
                 .orElseThrow(() -> new IllegalArgumentException("Email address already in use"));
-
-        var academyId = externalIamService.fetchCurrentAcademyId()
-                .orElseThrow(() -> new IllegalArgumentException("Academy not found"));
 
         var student = new Student(
                 command.personName(),
@@ -58,21 +60,39 @@ public class StudentCommandServiceImpl implements StudentCommandService {
 
     @Override
     public void handle(DeleteStudentCommand command) {
-        if (!studentRepository.existsById(command.studentId())) {
-            throw new IllegalArgumentException("Student with ID %s does not exist".formatted(command.studentId()));
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalArgumentException("Academy context not found"));
+
+
+        var student = studentRepository.findById(command.studentId())
+                .orElseThrow(() -> new StudentNotFoundException(command.studentId()));
+
+        if (!student.getAcademyId().equals(academyId)) {
+            throw new StudentNotFoundException(command.studentId());
         }
 
         try {
             studentRepository.deleteById(command.studentId());
         } catch (Exception e) {
-            throw new IllegalArgumentException("Error while deleting student");
+            throw new RuntimeException("Error while deleting student: " + e.getMessage(), e);
         }
     }
 
     @Override
     public Optional<Student> handle(UpdateStudentCommand command) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalArgumentException("Academy context not found"));
+
         var student = studentRepository.findById(command.studentId())
-                .orElseThrow(() -> new IllegalArgumentException("Student with ID %s does not exist".formatted(command.studentId())));
+                .orElseThrow(() -> new StudentNotFoundException(command.studentId()));
+
+        if (!student.getAcademyId().equals(academyId)) {
+            throw new StudentNotFoundException(command.studentId());
+        }
+
+        if (studentRepository.existsByDniAndIdNotAndAcademyId(command.dniNumber(), command.studentId(), academyId)) {
+            throw new StudentAlreadyExistsException(command.dniNumber());
+        }
 
         student.updateInformation(
                 command.personName(),
@@ -87,7 +107,7 @@ public class StudentCommandServiceImpl implements StudentCommandService {
             studentRepository.save(student);
             return Optional.of(student);
         }  catch (Exception e) {
-            throw new IllegalArgumentException("Error while updating student");
+            throw new RuntimeException("Error while updating student: " + e.getMessage(), e);
         }
     }
 
