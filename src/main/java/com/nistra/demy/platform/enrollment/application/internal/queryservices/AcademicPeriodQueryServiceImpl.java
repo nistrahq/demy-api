@@ -33,6 +33,9 @@ public class AcademicPeriodQueryServiceImpl implements AcademicPeriodQueryServic
 
     @Override
     public Optional<AcademicPeriod> handle(GetAcademicPeriodByIdQuery query) {
-        return academicPeriodRepository.findById(query.academicPeriodId());
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("Current academy ID not found"));
+        return academicPeriodRepository.findById(query.academicPeriodId())
+                .filter(academicPeriod -> academicPeriod.getAcademyId().equals(academyId));
     }
 }
