@@ -7,7 +7,14 @@ public enum TransactionType {
     EXPENSE;
 
     public static TransactionType fromString(String type) {
-        String normalized = type.replace("-", "_").replace(" ", "_");
+        if (type == null || type.isBlank())
+            throw new IllegalArgumentException("Transaction type cannot be null or blank");
+
+        String normalized = type.trim()
+                .replace("-", "_")
+                .replace(" ", "_")
+                .toUpperCase();
+
         for (TransactionType tt : TransactionType.values()) {
             if (tt.name().equalsIgnoreCase(normalized)) {
                 return tt;

@@ -11,7 +11,14 @@ public enum TransactionCategory {
     OTHER;
 
     public static TransactionCategory fromString(String category) {
-        String normalized = category.replace("-", "_").replace(" ", "_");
+        if (category == null || category.isBlank())
+            throw new IllegalArgumentException("Category cannot be null or blank");
+
+        String normalized = category.trim()
+                .replace("-", "_")
+                .replace(" ", "_")
+                .toUpperCase();
+
         for (TransactionCategory tc : TransactionCategory.values()) {
             if (tc.name().equalsIgnoreCase(normalized)) {
                 return tc;

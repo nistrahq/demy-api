@@ -11,7 +11,14 @@ public enum TransactionMethod {
     OTHER;
 
     public static TransactionMethod fromString(String method) {
-        String normalized = method.replace("-", "_").replace(" ", "_");
+        if (method == null || method.isBlank())
+            throw new IllegalArgumentException("Transaction method cannot be null or blank");
+
+        String normalized = method.trim()
+                .replace("-", "_")
+                .replace(" ", "_")
+                .toUpperCase();
+
         for (TransactionMethod tm : TransactionMethod.values()) {
             if (tm.name().equalsIgnoreCase(normalized)) {
                 return tm;
