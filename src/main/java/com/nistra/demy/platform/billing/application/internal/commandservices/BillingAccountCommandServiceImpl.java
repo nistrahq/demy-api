@@ -4,8 +4,10 @@ import com.nistra.demy.platform.billing.application.internal.outboundservices.ac
 import com.nistra.demy.platform.billing.domain.model.aggregates.BillingAccount;
 import com.nistra.demy.platform.billing.domain.model.commands.AssignInvoiceToBillingAccountCommand;
 import com.nistra.demy.platform.billing.domain.model.commands.CreateBillingAccountCommand;
+import com.nistra.demy.platform.billing.domain.model.commands.DeleteInvoiceCommand;
 import com.nistra.demy.platform.billing.domain.model.commands.MarkInvoiceAsPaidCommand;
 import com.nistra.demy.platform.billing.domain.model.entities.Invoice;
+import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceStatus;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountCommandService;
 import com.nistra.demy.platform.billing.infrastructure.persistence.jpa.repositories.BillingAccountRepository;
 import org.springframework.stereotype.Service;
@@ -62,5 +64,20 @@ public class BillingAccountCommandServiceImpl implements BillingAccountCommandSe
         billingAccountRepository.save(billingAccount);
         var invoice = billingAccount.findInvoiceById(command.invoiceId());
         return Optional.of(invoice);
+    }
+
+    @Override
+    public void handle(DeleteInvoiceCommand command) {
+        var billingAccount = billingAccountRepository.findById(command.billingAccountId())
+                .orElseThrow(() -> new RuntimeException("BillingAccount not found"));
+        var invoice = billingAccount.getInvoices().stream()
+                .filter(i -> i.getId().equals(command.invoiceId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Invoice not found: "));
+        if (invoice.getStatus() == InvoiceStatus.PAID) {
+            throw new IllegalStateException("Cannot delete a paid invoice.");
+        }
+        billingAccount.getInvoices().remove(invoice);
+        billingAccountRepository.save(billingAccount);
     }
 }

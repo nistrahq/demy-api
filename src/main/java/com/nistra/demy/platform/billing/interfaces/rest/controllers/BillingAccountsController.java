@@ -1,5 +1,6 @@
 package com.nistra.demy.platform.billing.interfaces.rest.controllers;
 
+import com.nistra.demy.platform.billing.domain.model.commands.DeleteInvoiceCommand;
 import com.nistra.demy.platform.billing.domain.model.commands.MarkInvoiceAsPaidCommand;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllBillingAccountsQuery;
 import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByBillingAccountIdQuery;
@@ -185,5 +186,23 @@ public class BillingAccountsController {
         if (invoices.isEmpty()) return ResponseEntity.ok(List.of());
         var invoiceResources = InvoiceResourceFromEntityAssembler.toResourcesFromEntities(invoices);
         return new ResponseEntity<>(invoiceResources, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{billingAccountId}/invoices/{invoiceId}")
+    @Operation(
+            summary = "Delete an invoice by ID",
+            description = "Deletes an invoice from a billing account if it is not paid.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Invoice successfully deleted"),
+                    @ApiResponse(responseCode = "400", description = "Cannot delete a paid invoice", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "Invoice or account not found", content = @Content)
+            }
+    )
+    public ResponseEntity<Void> deleteInvoice(
+            @PathVariable Long billingAccountId,
+            @PathVariable Long invoiceId) {
+
+        billingAccountCommandService.handle(new DeleteInvoiceCommand(billingAccountId, invoiceId));
+        return ResponseEntity.noContent().build();
     }
 }
