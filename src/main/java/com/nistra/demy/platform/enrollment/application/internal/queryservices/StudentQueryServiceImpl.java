@@ -8,7 +8,6 @@ import com.nistra.demy.platform.enrollment.domain.model.queries.GetStudentByIdQu
 import com.nistra.demy.platform.enrollment.domain.model.queries.GetStudentEmailAddressByUserIdQuery;
 import com.nistra.demy.platform.enrollment.domain.services.StudentQueryService;
 import com.nistra.demy.platform.enrollment.infrastructure.persistence.jpa.repositories.StudentRepository;
-import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherEmailAddressByUserIdQuery;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.EmailAddress;
 import org.springframework.stereotype.Service;
 
@@ -31,19 +30,28 @@ public class StudentQueryServiceImpl implements StudentQueryService {
 
     @Override
     public Optional<Student> handle(GetStudentByIdQuery query) {
-        return studentRepository.findById(query.studentId());
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("Current academy ID not found"));
+
+        return studentRepository.findById(query.studentId())
+                .filter(student -> student.getAcademyId().equals(academyId));
     }
 
     @Override
     public List<Student> handle(GetAllStudentsQuery query) {
         var academyId = externalIamService.fetchCurrentAcademyId()
                 .orElseThrow(() -> new IllegalStateException("Current academy ID not found"));
+
         return studentRepository.findAllByAcademyId(academyId);
     }
 
     @Override
     public Optional<Student> handle(GetStudentByDniQuery query) {
-        return studentRepository.findByDni(query.dniNumber());
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("Current academy ID not found"));
+
+        return studentRepository.findByDni(query.dniNumber())
+                .filter(student -> student.getAcademyId().equals(academyId));
     }
 
     @Override
