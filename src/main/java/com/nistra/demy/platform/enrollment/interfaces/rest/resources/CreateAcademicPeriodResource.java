@@ -10,6 +10,5 @@ import java.time.LocalDate;
 public record CreateAcademicPeriodResource(
         String periodName,
         LocalDate startDate,
-        LocalDate endDate,
-        Boolean isActive) {
+        LocalDate endDate) {
 }
