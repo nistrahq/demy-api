@@ -1,5 +1,7 @@
 package com.nistra.demy.platform.scheduling.interfaces.rest.controllers;
 
+import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherByUserIdQuery;
+import com.nistra.demy.platform.institution.domain.services.TeacherQueryService;
 import com.nistra.demy.platform.scheduling.domain.model.commands.*;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetAllWeeklySchedulesQuery;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetSchedulesByTeacherIdQuery;
@@ -37,20 +39,22 @@ public class WeeklySchedulesController {
 
     private final WeeklyScheduleCommandService weeklyScheduleCommandService;
     private final WeeklyScheduleQueryService weeklyScheduleQueryService;
-    // Nuevas dependencias inyectadas:
     private final WeeklyScheduleResourceFromEntityAssembler weeklyScheduleResourceFromEntityAssembler;
     private final ScheduleResourceFromEntityAssembler scheduleResourceFromEntityAssembler;
+    private final TeacherQueryService teacherQueryService;
 
     public WeeklySchedulesController(
             WeeklyScheduleCommandService weeklyScheduleCommandService,
             WeeklyScheduleQueryService weeklyScheduleQueryService,
             WeeklyScheduleResourceFromEntityAssembler weeklyScheduleResourceFromEntityAssembler, // INYECTADO
-            ScheduleResourceFromEntityAssembler scheduleResourceFromEntityAssembler // INYECTADO
+            ScheduleResourceFromEntityAssembler scheduleResourceFromEntityAssembler,
+            TeacherQueryService teacherQueryService
     ) {
         this.weeklyScheduleCommandService = weeklyScheduleCommandService;
         this.weeklyScheduleQueryService = weeklyScheduleQueryService;
         this.weeklyScheduleResourceFromEntityAssembler = weeklyScheduleResourceFromEntityAssembler;
         this.scheduleResourceFromEntityAssembler = scheduleResourceFromEntityAssembler;
+        this.teacherQueryService = teacherQueryService;
     }
 
     /**
@@ -233,25 +237,32 @@ public class WeeklySchedulesController {
     /**
      * Retrieves all class sessions for a specific teacher by their teacher ID. // Texto Actualizado
      *
-     * @param teacherId The ID of the teacher whose class sessions to retrieve. // Texto Actualizado
+     * @param userId The ID of the teacher whose class sessions to retrieve. // Texto Actualizado
      * @return A {@link ResponseEntity} containing the list of class sessions for the teacher. // Texto Actualizado
      */
-    @GetMapping("/by-teacher/{teacherId}")
-    @Operation(summary = "Get Class Sessions by teacherId", description = "Get all class sessions for a given teacherId") // Texto Actualizado
+    @GetMapping("/by-teacher/{userId}")
+    @Operation(summary = "Get Class Sessions by userId", description = "Get all class sessions for a given userId")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Class sessions found"), // Texto Actualizado
-            @ApiResponse(responseCode = "404", description = "No class sessions found for teacherId") // Texto Actualizado
+            @ApiResponse(responseCode = "200", description = "Class sessions found"),
+            @ApiResponse(responseCode = "404", description = "No class sessions found for teacherId")
     })
-    public ResponseEntity<List<ScheduleResource>> getClassSessionsByTeacherId(@PathVariable Long teacherId) {
-        var getSchedulesByTeacherIdQuery = new GetSchedulesByTeacherIdQuery(new UserId(teacherId));
-        var classSessions = weeklyScheduleQueryService.handle(getSchedulesByTeacherIdQuery); // Variable Renombrada
+    public ResponseEntity<List<ScheduleResource>> getClassSessionsByTeacherId(@PathVariable Long userId) {
+        var getTeacherByUserIdQuery = new GetTeacherByUserIdQuery(new UserId(userId));
+        var teacher = teacherQueryService.handle(getTeacherByUserIdQuery);
+
+        if (teacher.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var getSchedulesByTeacherIdQuery = new GetSchedulesByTeacherIdQuery(new UserId(teacher.get().getId()));
+        var classSessions = weeklyScheduleQueryService.handle(getSchedulesByTeacherIdQuery);
 
         if (classSessions == null || classSessions.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        var classSessionResources = classSessions.stream() // Variable Renombrada
-                .map(scheduleResourceFromEntityAssembler::toResourceFromEntity) // Corregido: Usa inyectado
+        var classSessionResources = classSessions.stream()
+                .map(scheduleResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
 
         return ResponseEntity.ok(classSessionResources);
