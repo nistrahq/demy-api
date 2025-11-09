@@ -24,7 +24,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping(value = "/api/v1/transactions", produces = APPLICATION_JSON_VALUE)
-@Tag(name = "Accounting and Financial Transactions", description = "Endpoints for managing accounting and financial transactions")
+@Tag(name = "Transactions", description = "Endpoints for managing financial transactions")
 public class TransactionsController {
 
     private final TransactionCommandService transactionCommandService;
