@@ -1,7 +1,7 @@
 package com.nistra.demy.platform.accountingfinance.application.internal.commandservices;
 
-import com.nistra.demy.platform.accountingfinance.application.internal.outboundservices.excel.ExcelReportingService;
-import com.nistra.demy.platform.accountingfinance.application.internal.outboundservices.pdf.PdfReportingService;
+import com.nistra.demy.platform.accountingfinance.application.internal.outboundservices.reporting.ExcelReportingService;
+import com.nistra.demy.platform.accountingfinance.application.internal.outboundservices.reporting.PdfReportingService;
 import com.nistra.demy.platform.accountingfinance.domain.model.queries.GetAllTransactionsQuery;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionCategory;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionMethod;

@@ -1,4 +1,4 @@
-package com.nistra.demy.platform.accountingfinance.application.internal.outboundservices.pdf;
+package com.nistra.demy.platform.accountingfinance.application.internal.outboundservices.reporting;
 
 import com.nistra.demy.platform.accountingfinance.domain.model.aggregates.Transaction;
 
