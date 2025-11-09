@@ -13,6 +13,8 @@ import com.nistra.demy.platform.accountingfinance.interfaces.rest.transform.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +41,14 @@ public class TransactionsController {
     }
 
     @PostMapping
+    @Operation(
+            summary = "Register a Transaction",
+            description = "Creates a new financial transaction in the system. The transaction must include type, category, method, amount, description, and date."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Transaction successfully created"),
+            @ApiResponse(responseCode = "400", description = "Invalid transaction data provided")
+    })
     public ResponseEntity<TransactionResource> registerTransaction(@RequestBody RegisterTransactionResource resource) {
         var registerTransactionCommand = RegisterTransactionCommandFromResourceAssembler.toCommandFromResource(resource);
         var transaction = transactionCommandService.handle(registerTransactionCommand);
@@ -53,6 +63,11 @@ public class TransactionsController {
             summary = "Update a Transaction",
             description = "Updates an existing transaction by its ID. Only transactions belonging to the current academy can be updated."
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Transaction successfully updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid transaction data provided"),
+            @ApiResponse(responseCode = "404", description = "Transaction not found")
+    })
     public ResponseEntity<TransactionResource> updateTransaction(
             @Parameter(description = "ID of the transaction to update")
             @PathVariable Long transactionId,
@@ -71,6 +86,10 @@ public class TransactionsController {
             summary = "Get Transaction by ID",
             description = "Retrieves a specific transaction by its ID. Only transactions belonging to the current academy can be accessed."
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Transaction found and returned"),
+            @ApiResponse(responseCode = "404", description = "Transaction not found")
+    })
     public ResponseEntity<TransactionResource> getTransactionById(
             @Parameter(description = "ID of the transaction to retrieve")
             @PathVariable Long transactionId
@@ -88,6 +107,9 @@ public class TransactionsController {
             description = "Retrieves all transactions registered in the system. " +
                     "Optional query parameters can be used to filter the results by category, method, or type."
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of transactions returned successfully")
+    })
     public ResponseEntity<List<TransactionResource>> getAllTransactions(
             @Parameter(
                     description = "Filter by transaction category (e.g., STUDENT_ENROLLMENT, TEACHER_SALARY)",
@@ -121,6 +143,10 @@ public class TransactionsController {
             summary = "Delete a Transaction",
             description = "Deletes an existing transaction by its ID. Only transactions belonging to the current academy can be deleted."
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Transaction successfully deleted"),
+            @ApiResponse(responseCode = "404", description = "Transaction not found")
+    })
     public ResponseEntity<Void> deleteTransaction(
             @Parameter(description = "ID of the transaction to delete")
             @PathVariable Long transactionId
