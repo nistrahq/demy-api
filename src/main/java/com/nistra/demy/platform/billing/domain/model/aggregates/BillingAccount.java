@@ -75,19 +75,21 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
     }
 
     public Invoice updateInvoice(UpdateInvoiceCommand command) {
-        var invoiceToUpdate = this.getInvoices().stream()
+        var invoice = this.invoices.stream()
                 .filter(i -> i.getId().equals(command.invoiceId()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Invoice ID %d not found in Billing Account %d"
-                        .formatted(command.invoiceId(), this.getId())));
-        if (invoiceToUpdate.getStatus() == InvoiceStatus.PAID) {
-            throw new IllegalStateException("Cannot update a paid invoice.");
-        }
-        invoiceToUpdate.setInvoiceType(command.invoiceType());
-        invoiceToUpdate.setAmount(command.amount());
-        invoiceToUpdate.setDescription(command.description());
-        invoiceToUpdate.setStatus(command.status());
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        invoice.updateDetails(command);
+        return invoice;
+    }
 
-        return invoiceToUpdate;
+    public void deleteInvoice(Long invoiceId) {
+        var invoice = invoices.stream()
+                .filter(i -> i.getId().equals(invoiceId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        if (invoice.getStatus() == InvoiceStatus.PAID)
+            throw new IllegalStateException("Cannot delete a paid invoice.");
+        invoices.remove(invoice);
     }
 }

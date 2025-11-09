@@ -84,7 +84,7 @@ public class BillingAccountCommandServiceImpl implements BillingAccountCommandSe
         if (invoice.getStatus() == InvoiceStatus.PAID) {
             throw new IllegalStateException("Cannot delete a paid invoice.");
         }
-        billingAccount.getInvoices().remove(invoice);
+        billingAccount.deleteInvoice(command.invoiceId());
         billingAccountRepository.save(billingAccount);
     }
 }
