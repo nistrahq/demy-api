@@ -8,6 +8,6 @@ public class EnrollmentAlreadyExistsException extends DomainException {
     public EnrollmentAlreadyExistsException(StudentId studentId, PeriodId periodId) {
         super("Enrollment already exists for student %s in period %s within the current academy context."
                         .formatted(studentId.studentId(), periodId.periodId()),
-                studentId, periodId);
+                studentId.studentId(), periodId.periodId());
     }
 }
