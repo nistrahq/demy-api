@@ -2,6 +2,7 @@ package com.nistra.demy.platform.accountingfinance.interfaces.rest.controllers;
 
 import com.nistra.demy.platform.accountingfinance.domain.model.commands.DeleteTransactionCommand;
 import com.nistra.demy.platform.accountingfinance.domain.model.queries.GetAllTransactionsQuery;
+import com.nistra.demy.platform.accountingfinance.domain.model.queries.GetTransactionByIdQuery;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionCategory;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionMethod;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionType;
@@ -62,6 +63,22 @@ public class TransactionsController {
         if (transaction.isEmpty()) return ResponseEntity.badRequest().build();
         var transactionEntity = transaction.get();
         var transactionResource = TransactionResourceFromEntityAssembler.toResourceFromEntity(transactionEntity);
+        return ResponseEntity.ok(transactionResource);
+    }
+
+    @GetMapping("/{transactionId}")
+    @Operation(
+            summary = "Get Transaction by ID",
+            description = "Retrieves a specific transaction by its ID. Only transactions belonging to the current academy can be accessed."
+    )
+    public ResponseEntity<TransactionResource> getTransactionById(
+            @Parameter(description = "ID of the transaction to retrieve")
+            @PathVariable Long transactionId
+    ) {
+        var getTransactionByIdQuery = new GetTransactionByIdQuery(transactionId);
+        var transaction = transactionQueryService.handle(getTransactionByIdQuery);
+        if (transaction.isEmpty()) return ResponseEntity.notFound().build();
+        var transactionResource = TransactionResourceFromEntityAssembler.toResourceFromEntity(transaction.get());
         return ResponseEntity.ok(transactionResource);
     }
 
