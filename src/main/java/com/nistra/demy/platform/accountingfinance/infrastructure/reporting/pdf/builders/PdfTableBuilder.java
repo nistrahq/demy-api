@@ -2,6 +2,7 @@ package com.nistra.demy.platform.accountingfinance.infrastructure.reporting.pdf.
 
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.layout.element.Cell;
@@ -12,7 +13,9 @@ import com.itextpdf.layout.properties.UnitValue;
 import com.nistra.demy.platform.accountingfinance.domain.model.aggregates.Transaction;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class PdfTableBuilder {
@@ -24,6 +27,25 @@ public class PdfTableBuilder {
         Table table = createTableStructure();
         addHeaders(table);
         addTransactionRows(table, transactions);
+        return table;
+    }
+
+    public Table buildCurrencySummaryTable(Map<String, BigDecimal> totalsByCurrency) {
+        Table table = new Table(UnitValue.createPointArray(new float[]{120f, 120f}));
+        table.setWidth(UnitValue.createPercentValue(35));
+        table.setMarginTop(10);
+        table.setMarginBottom(10);
+
+        // Header
+        addStyledSummaryHeaderCell(table, "Moneda");
+        addStyledSummaryHeaderCell(table, "Total");
+
+        // Data rows
+        totalsByCurrency.forEach((currency, total) -> {
+            table.addCell(createStyledSummaryCell(currency, TextAlignment.LEFT));
+            table.addCell(createStyledSummaryCell(String.format("%,.2f", total), TextAlignment.RIGHT));
+        });
+
         return table;
     }
 
@@ -83,7 +105,7 @@ public class PdfTableBuilder {
                         .setFontSize(9)
                         .setTextAlignment(TextAlignment.CENTER)
                         .setFontColor(ColorConstants.BLACK))
-                .setBackgroundColor(new com.itextpdf.kernel.colors.DeviceRgb(
+                .setBackgroundColor(new DeviceRgb(
                         HEADER_BACKGROUND_COLOR.getRed(),
                         HEADER_BACKGROUND_COLOR.getGreen(),
                         HEADER_BACKGROUND_COLOR.getBlue()))
@@ -101,6 +123,33 @@ public class PdfTableBuilder {
                         .setFontColor(ColorConstants.BLACK)
                         .setTextAlignment(alignment))
                 .setPadding(3)
+                .setBackgroundColor(ColorConstants.WHITE);
+    }
+
+    private void addStyledSummaryHeaderCell(Table table, String text) {
+        Cell headerCell = new Cell()
+                .add(new Paragraph(text)
+                        .setFont(createBoldFont())
+                        .setFontSize(10)
+                        .setTextAlignment(TextAlignment.CENTER)
+                        .setFontColor(ColorConstants.BLACK))
+                .setBackgroundColor(new DeviceRgb(
+                        HEADER_BACKGROUND_COLOR.getRed(),
+                        HEADER_BACKGROUND_COLOR.getGreen(),
+                        HEADER_BACKGROUND_COLOR.getBlue()))
+                .setPadding(5);
+
+        table.addHeaderCell(headerCell);
+    }
+
+    private Cell createStyledSummaryCell(String text, TextAlignment alignment) {
+        return new Cell()
+                .add(new Paragraph(text)
+                        .setFont(createRegularFont())
+                        .setFontSize(9)
+                        .setFontColor(ColorConstants.BLACK)
+                        .setTextAlignment(alignment))
+                .setPadding(5)
                 .setBackgroundColor(ColorConstants.WHITE);
     }
 }
