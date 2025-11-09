@@ -2,6 +2,7 @@ package com.nistra.demy.platform.accountingfinance.application.internal.commands
 
 import com.nistra.demy.platform.accountingfinance.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.accountingfinance.domain.model.aggregates.Transaction;
+import com.nistra.demy.platform.accountingfinance.domain.model.commands.DeleteTransactionCommand;
 import com.nistra.demy.platform.accountingfinance.domain.model.commands.RegisterTransactionCommand;
 import com.nistra.demy.platform.accountingfinance.domain.model.commands.UpdateTransactionCommand;
 import com.nistra.demy.platform.accountingfinance.domain.services.TransactionCommandService;
@@ -53,6 +54,22 @@ public class TransactionCommandServiceImpl implements TransactionCommandService 
             return Optional.of(transaction);
         } catch (Exception e) {
             throw new RuntimeException("Failed to update transaction: %s".formatted(e.getMessage()));
+        }
+    }
+
+    @Override
+    public void handle(DeleteTransactionCommand command) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new RuntimeException("No academy found"));
+        var transaction = transactionRepository.findById(command.transactionId())
+                .orElseThrow(() -> new RuntimeException("Transaction not found with id: %s".formatted(command.transactionId())));
+        if (!transaction.getAcademyId().equals(new AcademyId(academyId.academyId()))) {
+            throw new RuntimeException("Transaction does not belong to the current academy");
+        }
+        try {
+            transactionRepository.delete(transaction);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete transaction: %s".formatted(e.getMessage()));
         }
     }
 }
