@@ -5,14 +5,14 @@ import com.nistra.demy.platform.accountingfinance.infrastructure.reporting.excel
 import com.nistra.demy.platform.accountingfinance.infrastructure.reporting.excel.builders.ExcelTableBuilder;
 import com.nistra.demy.platform.accountingfinance.infrastructure.reporting.excel.builders.ExcelWorkbookBuilder;
 import com.nistra.demy.platform.accountingfinance.infrastructure.reporting.excel.formatters.TransactionExcelDataFormatter;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.Money;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.util.Currency;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PoiExcelReportServiceAdapter implements PoiExcelReportService {
@@ -41,24 +41,35 @@ public class PoiExcelReportServiceAdapter implements PoiExcelReportService {
             Workbook workbook = context.getWorkbook();
             Sheet sheet = context.getSheet();
 
-            // Create styles
-            CellStyle headerStyle = workbookBuilder.createHeaderStyle(workbook);
+            var uniqueCurrencies = dataFormatter.getUniqueCurrencies(transactions);
 
-            // Add headers
+            CellStyle headerStyle = workbookBuilder.createHeaderStyle(workbook);
+            Map<Currency, CellStyle> currencyStyles = new HashMap<>();
+            Map<Currency, CellStyle> boldCurrencyStyles = new HashMap<>();
+
+            for (Currency currency : uniqueCurrencies) {
+                currencyStyles.put(currency, workbookBuilder.createCurrencyStyle(workbook, currency));
+                boldCurrencyStyles.put(currency, workbookBuilder.createBoldCurrencyStyle(workbook, currency));
+            }
+
             tableBuilder.addHeaders(sheet, headerStyle);
 
-            // Add transaction rows
-            int lastRowIdx = tableBuilder.addTransactionRows(
+            int lastRowIdx = addTransactionRowsWithMultipleCurrencies(
                     sheet,
                     transactions,
-                    this::mapTransactionToRow
+                    currencyStyles
             );
 
-            // Add total row
-            BigDecimal total = dataFormatter.calculateTotalAmount(transactions);
-            tableBuilder.addTotalRow(sheet, lastRowIdx, total, headerStyle);
+            Map<Currency, Money> totalsByCurrency = dataFormatter.calculateTotalsByCurrency(transactions);
 
-            // Auto-size columns
+            tableBuilder.addTotalsByCurrencyTable(
+                    sheet,
+                    lastRowIdx,
+                    totalsByCurrency,
+                    headerStyle,
+                    boldCurrencyStyles
+            );
+
             workbookBuilder.autoSizeColumns(sheet, tableBuilder.getHeaderCount());
 
             return workbookBuilder.writeToBytes(workbook);
@@ -68,22 +79,44 @@ public class PoiExcelReportServiceAdapter implements PoiExcelReportService {
         }
     }
 
-    private void mapTransactionToRow(Transaction transaction, Row row) {
+    private int addTransactionRowsWithMultipleCurrencies(
+            Sheet sheet,
+            List<Transaction> transactions,
+            Map<Currency, CellStyle> currencyStyles
+    ) {
+        int rowIdx = 1;
+        for (Transaction transaction : transactions) {
+            Row row = sheet.createRow(rowIdx++);
+            Currency currency = transaction.getAmount().currency();
+            CellStyle currencyStyle = currencyStyles.get(currency);
+            mapTransactionToRow(transaction, row, currencyStyle);
+        }
+        return rowIdx;
+    }
+
+    private void mapTransactionToRow(Transaction transaction, Row row, CellStyle currencyStyle) {
         row.createCell(0).setCellValue(
                 dataFormatter.formatDate(transaction.getTransactionDate())
         );
+
         row.createCell(1).setCellValue(
                 transaction.getTransactionType().toString()
         );
+
         row.createCell(2).setCellValue(
                 transaction.getTransactionCategory().toString()
         );
+
         row.createCell(3).setCellValue(
                 transaction.getTransactionMethod().toString()
         );
-        row.createCell(4).setCellValue(
-                dataFormatter.formatAmount(transaction.getAmount().amount())
+
+        Cell amountCell = row.createCell(4);
+        amountCell.setCellValue(
+                dataFormatter.getAmountValue(transaction.getAmount())
         );
+        amountCell.setCellStyle(currencyStyle);
+
         row.createCell(5).setCellValue(
                 dataFormatter.formatDescription(transaction.getDescription())
         );
