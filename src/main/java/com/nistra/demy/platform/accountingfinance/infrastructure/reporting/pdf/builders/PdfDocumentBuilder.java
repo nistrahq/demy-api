@@ -39,6 +39,14 @@ public class PdfDocumentBuilder {
         }
     }
 
+    private PdfFont createItalicFont() {
+        try {
+            return PdfFontFactory.createFont(StandardFonts.HELVETICA_OBLIQUE);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al crear fuente itálica", e);
+        }
+    }
+
     public DocumentContext createDocument(ByteArrayOutputStream outputStream) {
         try {
             PdfWriter writer = new PdfWriter(outputStream);
@@ -54,7 +62,8 @@ public class PdfDocumentBuilder {
         try {
             Image logo = new Image(ImageDataFactory.create(LOGO_PATH))
                     .scaleToFit(80, 80)
-                    .setHorizontalAlignment(HorizontalAlignment.CENTER);
+                    .setHorizontalAlignment(HorizontalAlignment.CENTER)
+                    .setMarginBottom(20);
             document.add(logo);
         } catch (Exception e) {
             throw new RuntimeException("Error al agregar logo al PDF", e);
@@ -66,8 +75,36 @@ public class PdfDocumentBuilder {
                 .setFont(createBoldFont())
                 .setFontSize(16)
                 .setTextAlignment(TextAlignment.CENTER)
-                .setMarginBottom(10);
+                .setMarginBottom(5);
         document.add(title);
+    }
+
+    public void addDescription(Document document, String descriptionText) {
+        Paragraph description = new Paragraph(descriptionText)
+                .setFont(createItalicFont())
+                .setFontSize(10)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginBottom(10);
+        document.add(description);
+    }
+
+    public void addSubtitle(Document document, String subtitleText) {
+        Paragraph subtitle = new Paragraph(subtitleText)
+                .setFont(createBoldFont())
+                .setFontSize(14)
+                .setTextAlignment(TextAlignment.LEFT)
+                .setMarginBottom(5)
+                .setMarginTop(10);
+        document.add(subtitle);
+    }
+
+    public void addSectionDescription(Document document, String text) {
+        Paragraph sectionDesc = new Paragraph(text)
+                .setFont(createItalicFont())
+                .setFontSize(10)
+                .setTextAlignment(TextAlignment.LEFT)
+                .setMarginBottom(10);
+        document.add(sectionDesc);
     }
 
     public void addGeneratedDate(Document document) {
