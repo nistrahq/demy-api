@@ -46,6 +46,24 @@ public class TransactionsController {
         return new ResponseEntity<>(transactionResource, HttpStatus.CREATED);
     }
 
+    @PutMapping("/{transactionId}")
+    @Operation(
+            summary = "Update a Transaction",
+            description = "Updates an existing transaction by its ID. Only transactions belonging to the current academy can be updated."
+    )
+    public ResponseEntity<TransactionResource> updateTransaction(
+            @Parameter(description = "ID of the transaction to update")
+            @PathVariable Long transactionId,
+            @RequestBody UpdateTransactionResource resource
+    ) {
+        var updateTransactionCommand = UpdateTransactionCommandFromResourceAssembler.toCommandFromResource(transactionId, resource);
+        var transaction = transactionCommandService.handle(updateTransactionCommand);
+        if (transaction.isEmpty()) return ResponseEntity.badRequest().build();
+        var transactionEntity = transaction.get();
+        var transactionResource = TransactionResourceFromEntityAssembler.toResourceFromEntity(transactionEntity);
+        return ResponseEntity.ok(transactionResource);
+    }
+
     @GetMapping
     @Operation(
             summary = "Get All Transactions",
