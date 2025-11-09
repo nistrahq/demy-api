@@ -1,4 +1,4 @@
-package com.nistra.demy.platform.accountingfinance.infrastructure.reporting;
+package com.nistra.demy.platform.accountingfinance.infrastructure.reporting.pdf.services;
 
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.io.image.ImageDataFactory;
@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class PdfReportGenerator {
+public class PdfReportServiceImpl {
     public byte[] generateTransactionsReport(List<Transaction> transactions) {
         if (transactions == null || transactions.isEmpty()) {
             return generateEmptyReport();
