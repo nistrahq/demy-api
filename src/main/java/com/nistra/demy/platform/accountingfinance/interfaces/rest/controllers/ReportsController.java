@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/reports/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ReportsController {
+
+    private static final String EXCEL_MEDIA_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     private final ReportCommandService reportCommandService;
 
@@ -62,46 +63,49 @@ public class ReportsController {
         var categoryValueObject = TransactionCategoryFromResourceAssembler.toValueObjectFromString(category);
         var methodValueObject = TransactionMethodResourceAssembler.toValueObjectFromString(method);
         var typeValueObject = TransactionTypeFromResourceAssembler.toValueObjectFromString(type);
-
         var pdfBytes = reportCommandService.generateTransactionsPdfReport(
                 categoryValueObject, methodValueObject, typeValueObject
         );
-
-        if (pdfBytes == null || pdfBytes.length == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("No se encontraron transacciones para generar el reporte.".getBytes());
-        }
-
+        if (pdfBytes == null || pdfBytes.length == 0) return ResponseEntity.notFound().build();
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transactions-report.pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
     }
 
-    @GetMapping(value = "/excel", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    @GetMapping(value = "/excel", produces = EXCEL_MEDIA_TYPE)
     @Operation(
             summary = "Generate Excel Transaction Report",
             description = "Generates an Excel report of all transactions filtered by category, method, and type."
     )
     public ResponseEntity<byte[]> generateTransactionsExcelReport(
+            @Parameter(
+                    description = "Filter by transaction category (e.g., STUDENT_ENROLLMENT, TEACHER_SALARY)",
+                    schema = @Schema(implementation = TransactionCategory.class)
+            )
             @RequestParam(required = false) String category,
+
+            @Parameter(
+                    description = "Filter by transaction method (e.g., CASH, CREDIT_CARD)",
+                    schema = @Schema(implementation = TransactionMethod.class)
+            )
             @RequestParam(required = false) String method,
+
+            @Parameter(
+                    description = "Filter by transaction type (e.g., INCOME, EXPENSE)",
+                    schema = @Schema(implementation = TransactionType.class)
+            )
             @RequestParam(required = false) String type
     ) {
-        var categoryVO = TransactionCategoryFromResourceAssembler.toValueObjectFromString(category);
-        var methodVO = TransactionMethodResourceAssembler.toValueObjectFromString(method);
-        var typeVO = TransactionTypeFromResourceAssembler.toValueObjectFromString(type);
-
-        var excelBytes = reportCommandService.generateTransactionsExcelReport(categoryVO, methodVO, typeVO);
-
-        if (excelBytes == null || excelBytes.length == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("No se encontraron transacciones para generar el reporte.".getBytes());
-        }
-
+        var categoryValueObject = TransactionCategoryFromResourceAssembler.toValueObjectFromString(category);
+        var methodValueObject = TransactionMethodResourceAssembler.toValueObjectFromString(method);
+        var typeValueObject = TransactionTypeFromResourceAssembler.toValueObjectFromString(type);
+        var excelBytes = reportCommandService.generateTransactionsExcelReport(categoryValueObject, methodValueObject, typeValueObject);
+        if (excelBytes == null || excelBytes.length == 0)
+            return ResponseEntity.notFound().build();
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transactions-report.xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(MediaType.parseMediaType(EXCEL_MEDIA_TYPE))
                 .body(excelBytes);
     }
 }
