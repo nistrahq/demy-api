@@ -95,21 +95,25 @@ public class ITextPdfReportServiceAdapter implements ITextPdfReportService {
         documentBuilder.addSectionTitle(document, "Análisis Gráfico");
         documentBuilder.addSpacing(document);
 
-        Map<String, BigDecimal> totalsByCategory = dataFormatter.calculateTotalsByCategory(transactions);
-        byte[] pieChartBytes = chartGenerator.generatePieChart(
-                totalsByCategory,
-                "Transacciones por Categoría"
-        );
-        documentBuilder.addImage(document, pieChartBytes, 5, 10);
+        Map<String, BigDecimal> expensesByCategory = dataFormatter.calculateExpenseTotalsByCategory(transactions);
+        if (!expensesByCategory.isEmpty()) {
+            byte[] pieChartBytes = chartGenerator.generatePieChart(
+                    expensesByCategory,
+                    "Gastos por Categoría"
+            );
+            documentBuilder.addImage(document, pieChartBytes, 5, 10);
+        }
 
-        Map<String, BigDecimal> totalsOverTime = dataFormatter.calculateTotalsOverTime(transactions);
-        byte[] timeChartBytes = chartGenerator.generateTimeSeriesChart(
-                totalsOverTime,
-                "Evolución de Transacciones en el Tiempo",
-                "Fecha",
-                "Monto Total"
-        );
-        documentBuilder.addImage(document, timeChartBytes, 5, 5);
+        Map<String, BigDecimal> incomesOverTime = dataFormatter.calculateIncomeTotalsOverTime(transactions);
+        if (!incomesOverTime.isEmpty()) {
+            byte[] timeChartBytes = chartGenerator.generateTimeSeriesChart(
+                    incomesOverTime,
+                    "Evolución de Ingresos en el Tiempo",
+                    "Fecha",
+                    "Monto Total"
+            );
+            documentBuilder.addImage(document, timeChartBytes, 5, 5);
+        }
     }
 
     private byte[] generateEmptyReport() {

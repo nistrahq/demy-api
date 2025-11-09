@@ -1,6 +1,7 @@
 package com.nistra.demy.platform.accountingfinance.infrastructure.reporting.pdf.formatters;
 
 import com.nistra.demy.platform.accountingfinance.domain.model.aggregates.Transaction;
+import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionType;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -8,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class TransactionPdfDataFormatter {
@@ -32,6 +34,32 @@ public class TransactionPdfDataFormatter {
             totals.merge(category, amount, BigDecimal::add);
         });
         return totals;
+    }
+
+    public Map<String, BigDecimal> calculateExpenseTotalsByCategory(List<Transaction> transactions) {
+        return transactions.stream()
+                .filter(t -> TransactionType.EXPENSE.equals(t.getTransactionType()))
+                .collect(Collectors.groupingBy(
+                        t -> t.getTransactionCategory().name(),
+                        Collectors.reducing(
+                                BigDecimal.ZERO,
+                                t -> t.getAmount().amount(),
+                                BigDecimal::add
+                        )
+                ));
+    }
+
+    public Map<String, BigDecimal> calculateIncomeTotalsOverTime(List<Transaction> transactions) {
+        return transactions.stream()
+                .filter(t -> TransactionType.INCOME.equals(t.getTransactionType()))
+                .collect(Collectors.groupingBy(
+                        t -> t.getTransactionDate().format(DATE_FORMATTER),
+                        Collectors.reducing(
+                                BigDecimal.ZERO,
+                                t -> t.getAmount().amount(),
+                                BigDecimal::add
+                        )
+                ));
     }
 
     public Map<String, BigDecimal> calculateTotalsOverTime(List<Transaction> transactions) {
