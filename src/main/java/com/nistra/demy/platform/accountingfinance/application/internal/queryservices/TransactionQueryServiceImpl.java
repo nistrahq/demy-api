@@ -3,12 +3,15 @@ package com.nistra.demy.platform.accountingfinance.application.internal.queryser
 import com.nistra.demy.platform.accountingfinance.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.accountingfinance.domain.model.aggregates.Transaction;
 import com.nistra.demy.platform.accountingfinance.domain.model.queries.GetAllTransactionsQuery;
+import com.nistra.demy.platform.accountingfinance.domain.model.queries.GetTransactionByIdQuery;
 import com.nistra.demy.platform.accountingfinance.domain.services.TransactionQueryService;
 import com.nistra.demy.platform.accountingfinance.infrastructure.persistence.jpa.repositories.TransactionRepository;
 import com.nistra.demy.platform.accountingfinance.infrastructure.persistence.jpa.specifications.TransactionSpecificationsBuilder;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TransactionQueryServiceImpl implements TransactionQueryService {
@@ -22,6 +25,17 @@ public class TransactionQueryServiceImpl implements TransactionQueryService {
     ) {
         this.transactionRepository = transactionRepository;
         this.externalIamService = externalIamService;
+    }
+
+    @Override
+    public Optional<Transaction> handle(GetTransactionByIdQuery query) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new RuntimeException("No academy found for the current user"));
+        var transaction = transactionRepository.findById(query.transactionId());
+        if (transaction.isPresent() && !transaction.get().getAcademyId().equals(new AcademyId(academyId.academyId()))) {
+            throw new RuntimeException("Transaction does not belong to the current academy");
+        }
+        return transaction;
     }
 
     @Override
