@@ -1,5 +1,6 @@
 package com.nistra.demy.platform.accountingfinance.interfaces.rest.controllers;
 
+import com.nistra.demy.platform.accountingfinance.domain.model.commands.DeleteTransactionCommand;
 import com.nistra.demy.platform.accountingfinance.domain.model.queries.GetAllTransactionsQuery;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionCategory;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionMethod;
@@ -97,4 +98,19 @@ public class TransactionsController {
         var transactionResources = TransactionResourceFromEntityAssembler.toResourcesFromEntities(transactions);
         return new ResponseEntity<>(transactionResources, HttpStatus.OK);
     }
+
+    @DeleteMapping("/{transactionId}")
+    @Operation(
+            summary = "Delete a Transaction",
+            description = "Deletes an existing transaction by its ID. Only transactions belonging to the current academy can be deleted."
+    )
+    public ResponseEntity<Void> deleteTransaction(
+            @Parameter(description = "ID of the transaction to delete")
+            @PathVariable Long transactionId
+    ) {
+        var deleteTransactionCommand = new DeleteTransactionCommand(transactionId);
+        transactionCommandService.handle(deleteTransactionCommand);
+        return ResponseEntity.noContent().build();
+    }
 }
+
