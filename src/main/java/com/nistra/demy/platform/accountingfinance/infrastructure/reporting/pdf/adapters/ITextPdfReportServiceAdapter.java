@@ -66,7 +66,11 @@ public class ITextPdfReportServiceAdapter implements ITextPdfReportService {
 
     private void addReportHeader(com.itextpdf.layout.Document document) {
         documentBuilder.addLogo(document);
+        documentBuilder.addSpacing(document);
         documentBuilder.addTitle(document, "Reporte de Transacciones");
+        documentBuilder.addDescription(document,
+                "Este documento presenta un análisis detallado de las transacciones registradas, " +
+                "incluyendo información general, totales por moneda y análisis gráfico de gastos e ingresos.");
         documentBuilder.addGeneratedDate(document);
         documentBuilder.addSpacing(document);
     }
@@ -78,13 +82,13 @@ public class ITextPdfReportServiceAdapter implements ITextPdfReportService {
     }
 
     private void addSummarySection(com.itextpdf.layout.Document document, List<Transaction> transactions) {
+        documentBuilder.addSectionTitle(document, "Resumen Financiero");
+        documentBuilder.addSectionDescription(document,
+                "A continuación se presentan los totales acumulados de todas las transacciones agrupadas por moneda.");
+
         Map<String, BigDecimal> totalsByCurrency = dataFormatter.calculateTotalsByCurrency(transactions);
-
-        documentBuilder.addSectionTitle(document, "Totales por moneda:");
-
-        totalsByCurrency.forEach((currency, total) ->
-            documentBuilder.addBulletPoint(document, currency + ": " + total)
-        );
+        Table summaryTable = tableBuilder.buildCurrencySummaryTable(totalsByCurrency);
+        document.add(summaryTable);
 
         documentBuilder.addSpacing(document);
     }
@@ -97,6 +101,11 @@ public class ITextPdfReportServiceAdapter implements ITextPdfReportService {
 
         Map<String, BigDecimal> expensesByCategory = dataFormatter.calculateExpenseTotalsByCategory(transactions);
         if (!expensesByCategory.isEmpty()) {
+            documentBuilder.addSubtitle(document, "Distribución de Gastos por Categoría");
+            documentBuilder.addSectionDescription(document,
+                    "El siguiente gráfico circular muestra la distribución porcentual de todos los gastos " +
+                    "registrados, agrupados por categoría. Esto permite identificar las áreas de mayor inversión.");
+
             byte[] pieChartBytes = chartGenerator.generatePieChart(
                     expensesByCategory,
                     "Gastos por Categoría"
@@ -106,6 +115,11 @@ public class ITextPdfReportServiceAdapter implements ITextPdfReportService {
 
         Map<String, BigDecimal> incomesOverTime = dataFormatter.calculateIncomeTotalsOverTime(transactions);
         if (!incomesOverTime.isEmpty()) {
+            documentBuilder.addSubtitle(document, "Evolución Temporal de Ingresos");
+            documentBuilder.addSectionDescription(document,
+                    "El siguiente gráfico de barras presenta la evolución de los ingresos a lo largo del tiempo, " +
+                    "permitiendo identificar tendencias y patrones en la generación de ingresos.");
+
             byte[] timeChartBytes = chartGenerator.generateTimeSeriesChart(
                     incomesOverTime,
                     "Evolución de Ingresos en el Tiempo",
