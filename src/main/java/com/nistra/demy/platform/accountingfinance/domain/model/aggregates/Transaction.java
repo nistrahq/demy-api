@@ -1,6 +1,7 @@
 package com.nistra.demy.platform.accountingfinance.domain.model.aggregates;
 
 import com.nistra.demy.platform.accountingfinance.domain.model.commands.RegisterTransactionCommand;
+import com.nistra.demy.platform.accountingfinance.domain.model.commands.UpdateTransactionCommand;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionCategory;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionMethod;
 import com.nistra.demy.platform.accountingfinance.domain.model.valueobjects.TransactionType;
@@ -41,6 +42,7 @@ public class Transaction extends AuditableAbstractAggregateRoot<Transaction> {
     private LocalDate transactionDate;
 
     @Embedded
+    @Getter
     private AcademyId academyId;
 
     protected Transaction() {}
@@ -53,5 +55,14 @@ public class Transaction extends AuditableAbstractAggregateRoot<Transaction> {
         this.description = command.description();
         this.transactionDate = command.transactionDate();
         this.academyId = academyId;
+    }
+
+    public void updateTransaction(UpdateTransactionCommand command) {
+        this.transactionType = TransactionType.fromString(command.transactionType());
+        this.transactionCategory = TransactionCategory.fromString(command.transactionCategory());
+        this.transactionMethod = TransactionMethod.fromString(command.transactionMethod());
+        this.amount = command.amount();
+        this.description = command.description();
+        this.transactionDate = command.transactionDate();
     }
 }
