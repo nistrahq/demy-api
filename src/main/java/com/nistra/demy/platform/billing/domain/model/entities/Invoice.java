@@ -1,6 +1,7 @@
 package com.nistra.demy.platform.billing.domain.model.entities;
 
 import com.nistra.demy.platform.billing.domain.model.aggregates.BillingAccount;
+import com.nistra.demy.platform.billing.domain.model.commands.UpdateInvoiceCommand;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceStatus;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceType;
 import com.nistra.demy.platform.shared.domain.model.entities.AuditableModel;
@@ -58,5 +59,27 @@ public class Invoice extends AuditableModel {
         this.dueDate = dueDate;
         this.status = status;
         this.billingAccount = billingAccount;
+    }
+
+    public void setInvoiceType(InvoiceType invoiceType) {
+    }
+
+    public void setAmount(Money amount) {
+    }
+
+    public void setDescription(String description) {
+    }
+
+    public void updateDetails(UpdateInvoiceCommand command) {
+        if (this.status != InvoiceStatus.PENDING)
+            throw new IllegalStateException("Only pending invoices can be updated");
+        if (command.invoiceType() != null)
+            this.invoiceType = command.invoiceType();
+        if (command.amount() != null)
+            this.amount = command.amount();
+        if (command.description() != null && !command.description().isBlank())
+            this.description = command.description();
+        if (command.status() != null)
+            this.status = command.status();
     }
 }
