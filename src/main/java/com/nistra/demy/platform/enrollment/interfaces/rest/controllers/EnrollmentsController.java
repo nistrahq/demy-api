@@ -82,7 +82,7 @@ public class EnrollmentsController {
     })
     public ResponseEntity<List<EnrollmentResource>> getAllEnrollments() {
         var enrollments = enrollmentQueryService.handle(new GetAllEnrollmentsQuery());
-        if (enrollments.isEmpty()) return ResponseEntity.notFound().build();
+        // if (enrollments.isEmpty()) return ResponseEntity.notFound().build();
 
         var enrollmentsResources = enrollments.stream()
                 .map(EnrollmentResourceFromEntityAssembler::toResourceFromEntity)

@@ -95,7 +95,7 @@ public class StudentsController {
     })
     public ResponseEntity<List<StudentResource>> getAllStudents() {
         var students = studentQueryService.handle(new GetAllStudentsQuery());
-        if (students.isEmpty()) return ResponseEntity.notFound().build();
+        // if (students.isEmpty()) return ResponseEntity.notFound().build();
 
         var resources = students
                 .stream()
