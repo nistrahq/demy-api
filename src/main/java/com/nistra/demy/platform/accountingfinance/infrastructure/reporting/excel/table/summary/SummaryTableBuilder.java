@@ -1,45 +1,38 @@
-package com.nistra.demy.platform.accountingfinance.infrastructure.reporting.excel.builders;
+package com.nistra.demy.platform.accountingfinance.infrastructure.reporting.excel.table.summary;
 
-import com.nistra.demy.platform.accountingfinance.domain.model.aggregates.Transaction;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.Money;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.Currency;
-import java.util.List;
 import java.util.Map;
 
+/**
+ * Builds currency summary tables for Excel reports.
+ * <p>
+ * Creates formatted tables showing totals grouped by currency
+ * with appropriate styling.
+ *
+ * @author Salim Ramirez
+ */
 @Component
-public class ExcelTableBuilder {
+public class SummaryTableBuilder {
 
-    private static final String[] TRANSACTION_HEADERS = {
-            "Fecha", "Tipo", "Categoría", "Método", "Monto", "Descripción"
-    };
-
-    public void addHeaders(Sheet sheet, CellStyle headerStyle) {
-        Row headerRow = sheet.createRow(0);
-        for (int i = 0; i < TRANSACTION_HEADERS.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(TRANSACTION_HEADERS[i]);
-            cell.setCellStyle(headerStyle);
-        }
-    }
-
-    public int addTransactionRows(
-            Sheet sheet,
-            List<Transaction> transactions,
-            TransactionRowMapper rowMapper
-    ) {
-        int rowIdx = 1;
-        for (Transaction transaction : transactions) {
-            Row row = sheet.createRow(rowIdx++);
-            rowMapper.mapTransactionToRow(transaction, row);
-        }
-        return rowIdx;
-    }
-
-    public int addTotalsByCurrencyTable(
+    /**
+     * Adds currency totals table to sheet.
+     *
+     * @param sheet Sheet to add table to
+     * @param startRowIdx Starting row index
+     * @param totalsByCurrency Map of currency totals
+     * @param headerStyle Style for header cells
+     * @param currencyStyles Styles per currency
+     * @return Index of next available row
+     */
+    public int addTotalsTable(
             Sheet sheet,
             int startRowIdx,
             Map<Currency, Money> totalsByCurrency,
@@ -48,12 +41,23 @@ public class ExcelTableBuilder {
     ) {
         int currentRow = startRowIdx + 1;
 
-        Row titleRow = sheet.createRow(currentRow++);
+        currentRow = addTableTitle(sheet, currentRow, headerStyle);
+        currentRow = addTableHeaders(sheet, currentRow, headerStyle);
+        currentRow = addTableData(sheet, currentRow, totalsByCurrency, currencyStyles);
+
+        return currentRow;
+    }
+
+    private int addTableTitle(Sheet sheet, int rowIdx, CellStyle headerStyle) {
+        Row titleRow = sheet.createRow(rowIdx++);
         Cell titleCell = titleRow.createCell(3);
         titleCell.setCellValue("Totales por Moneda:");
         titleCell.setCellStyle(headerStyle);
+        return rowIdx;
+    }
 
-        Row headerRow = sheet.createRow(currentRow++);
+    private int addTableHeaders(Sheet sheet, int rowIdx, CellStyle headerStyle) {
+        Row headerRow = sheet.createRow(rowIdx++);
 
         Cell currencyHeaderCell = headerRow.createCell(3);
         currencyHeaderCell.setCellValue("Moneda");
@@ -63,7 +67,16 @@ public class ExcelTableBuilder {
         amountHeaderCell.setCellValue("Total");
         amountHeaderCell.setCellStyle(headerStyle);
 
-        final int[] rowCounter = {currentRow};
+        return rowIdx;
+    }
+
+    private int addTableData(
+            Sheet sheet,
+            int startRow,
+            Map<Currency, Money> totalsByCurrency,
+            Map<Currency, CellStyle> currencyStyles
+    ) {
+        final int[] rowCounter = {startRow};
 
         totalsByCurrency.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey(Comparator.comparing(Currency::getCurrencyCode)))
@@ -82,15 +95,6 @@ public class ExcelTableBuilder {
                 });
 
         return rowCounter[0];
-    }
-
-    public int getHeaderCount() {
-        return TRANSACTION_HEADERS.length;
-    }
-
-    @FunctionalInterface
-    public interface TransactionRowMapper {
-        void mapTransactionToRow(Transaction transaction, Row row);
     }
 }
 
