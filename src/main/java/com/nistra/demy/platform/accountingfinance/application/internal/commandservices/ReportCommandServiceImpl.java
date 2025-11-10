@@ -10,6 +10,14 @@ import com.nistra.demy.platform.accountingfinance.domain.services.ReportCommandS
 import com.nistra.demy.platform.accountingfinance.domain.services.TransactionQueryService;
 import org.springframework.stereotype.Service;
 
+/**
+ * Implementation of report command service.
+ * <p>
+ * Orchestrates transaction queries and delegates report generation
+ * to PDF and Excel reporting services based on requested format.
+ *
+ * @author Salim Ramirez
+ */
 @Service
 public class ReportCommandServiceImpl implements ReportCommandService {
 
@@ -27,6 +35,14 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         this.excelReportingService = excelReportingService;
     }
 
+    /**
+     * Generates a PDF report of transactions with optional filters.
+     *
+     * @param category Filter by transaction category (nullable)
+     * @param method Filter by transaction method (nullable)
+     * @param type Filter by transaction type (nullable)
+     * @return PDF report as byte array
+     */
     @Override
     public byte[] generateTransactionsPdfReport(
             TransactionCategory category,
@@ -38,6 +54,14 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         return pdfReportingService.generateTransactionsPdfReport(transactions);
     }
 
+    /**
+     * Generates an Excel report of transactions with optional filters.
+     *
+     * @param category Filter by transaction category (nullable)
+     * @param method Filter by transaction method (nullable)
+     * @param type Filter by transaction type (nullable)
+     * @return Excel report as byte array
+     */
     @Override
     public byte[] generateTransactionsExcelReport(
             TransactionCategory category,
