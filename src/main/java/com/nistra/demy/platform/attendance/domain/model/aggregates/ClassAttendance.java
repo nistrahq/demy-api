@@ -66,7 +66,7 @@ public class ClassAttendance extends AuditableAbstractAggregateRoot<ClassAttenda
         return this.attendance.stream()
                 .filter(ar -> ar.getDni().equals(dni))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No existe alumno con ese DNI en esta asistencia"));
+                .orElseThrow(() -> new IllegalArgumentException("A student with this dni does not exist"));
     }
 
     public void updateRecordStatus(DniNumber dni, AttendanceStatus newStatus) {
