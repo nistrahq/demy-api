@@ -11,4 +11,6 @@ public interface WeeklySchedulesContextFacade {
      * @return The weekly schedule ID
      */
     Long fetchWeeklyScheduleIdByName(String name);
+
+    boolean existsScheduleById(Long scheduleId);
 }
