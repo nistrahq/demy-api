@@ -2,13 +2,11 @@ package com.nistra.demy.platform.enrollment.application.internal.queryservices;
 
 import com.nistra.demy.platform.enrollment.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.enrollment.domain.model.aggregates.Student;
-import com.nistra.demy.platform.enrollment.domain.model.queries.GetAllStudentsQuery;
-import com.nistra.demy.platform.enrollment.domain.model.queries.GetStudentByDniQuery;
-import com.nistra.demy.platform.enrollment.domain.model.queries.GetStudentByIdQuery;
-import com.nistra.demy.platform.enrollment.domain.model.queries.GetStudentEmailAddressByUserIdQuery;
+import com.nistra.demy.platform.enrollment.domain.model.queries.*;
 import com.nistra.demy.platform.enrollment.domain.services.StudentQueryService;
 import com.nistra.demy.platform.enrollment.infrastructure.persistence.jpa.repositories.StudentRepository;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.EmailAddress;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.StudentId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -57,5 +55,12 @@ public class StudentQueryServiceImpl implements StudentQueryService {
     @Override
     public Optional<EmailAddress> handle(GetStudentEmailAddressByUserIdQuery query) {
         return externalIamService.fetchStudentEmailByUserId(query.userId().userId());
+    }
+
+    @Override
+    public Optional<StudentId> handle(GetStudentIdByDniQuery query) {
+        var studentId = studentRepository.findByDni(query.dniNumber())
+                .orElseThrow(() -> new RuntimeException("Student not found for DNI: %s".formatted(query.dniNumber().dniNumber())));
+        return Optional.of(new StudentId(studentId.getId()));
     }
 }
