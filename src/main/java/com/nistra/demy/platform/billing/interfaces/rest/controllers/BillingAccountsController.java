@@ -101,7 +101,7 @@ public class BillingAccountsController {
             @Parameter(description = "Invoice identifier", example = "5")
             @PathVariable Long invoiceId
     ) {
-        var markInvoiceAsPaidCommand = new MarkInvoiceAsPaidCommand(invoiceId, billingAccountId);
+        var markInvoiceAsPaidCommand = new MarkInvoiceAsPaidCommand(billingAccountId, invoiceId);
         var invoice = billingAccountCommandService.handle(markInvoiceAsPaidCommand);
         if (invoice.isEmpty()) return ResponseEntity.badRequest().build();
         var invoiceEntity = invoice.get();
