@@ -7,7 +7,7 @@ import java.time.LocalDate;
 /**
  * Command to create a new academic period.
  */
-public record CreateAcademicPeriodCommand (String periodName, LocalDate startDate, LocalDate endDate, Boolean isActive) {
+public record CreateAcademicPeriodCommand (String periodName, LocalDate startDate, LocalDate endDate) {
     public CreateAcademicPeriodCommand {
         if (periodName == null || periodName.isBlank()) {
             throw new IllegalArgumentException("title cannot be null or blank");
@@ -17,9 +17,6 @@ public record CreateAcademicPeriodCommand (String periodName, LocalDate startDat
         }
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("startDate must be after endDate");
-        }
-        if (isActive == null) {
-            throw new IllegalArgumentException("isActive cannot be null");
         }
     }
 }
