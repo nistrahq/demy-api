@@ -2,12 +2,15 @@ package com.nistra.demy.platform.billing.domain.model.aggregates;
 
 import com.nistra.demy.platform.billing.domain.model.commands.AssignInvoiceToBillingAccountCommand;
 import com.nistra.demy.platform.billing.domain.model.commands.CreateBillingAccountCommand;
+import com.nistra.demy.platform.billing.domain.model.commands.UpdateInvoiceCommand;
 import com.nistra.demy.platform.billing.domain.model.entities.Invoice;
 import com.nistra.demy.platform.billing.domain.model.events.InvoicePaidEvent;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.AccountStatus;
 import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceStatus;
+import com.nistra.demy.platform.billing.domain.model.valueobjects.InvoiceType;
 import com.nistra.demy.platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.Money;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.StudentId;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -76,5 +79,24 @@ public class BillingAccount extends AuditableAbstractAggregateRoot<BillingAccoun
 
     public List<Invoice> getInvoices() {
         return Collections.unmodifiableList(invoices);
+    }
+
+    public Invoice updateInvoice(UpdateInvoiceCommand command) {
+        var invoice = this.invoices.stream()
+                .filter(i -> i.getId().equals(command.invoiceId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        invoice.updateDetails(command);
+        return invoice;
+    }
+
+    public void deleteInvoice(Long invoiceId) {
+        var invoice = invoices.stream()
+                .filter(i -> i.getId().equals(invoiceId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        if (invoice.getStatus() == InvoiceStatus.PAID)
+            throw new IllegalStateException("Cannot delete a paid invoice.");
+        invoices.remove(invoice);
     }
 }
