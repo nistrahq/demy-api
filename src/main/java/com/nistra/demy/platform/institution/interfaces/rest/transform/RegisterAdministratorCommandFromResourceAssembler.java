@@ -17,7 +17,6 @@ public class RegisterAdministratorCommandFromResourceAssembler {
                         resource.phone()
                 ),
                 new DniNumber(resource.dniNumber()),
-                new AcademyId(resource.academyId()),
                 new UserId(resource.userId())
         );
     }

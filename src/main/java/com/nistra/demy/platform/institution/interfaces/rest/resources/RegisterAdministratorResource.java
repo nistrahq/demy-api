@@ -1,12 +1,11 @@
 package com.nistra.demy.platform.institution.interfaces.rest.resources;
 
-    public record RegisterAdministratorResource(
+public record RegisterAdministratorResource(
         String firstName,
         String lastName,
         String countryCode,
         String phone,
         String dniNumber,
-        Long academyId,
         Long userId
 ) {
     public RegisterAdministratorResource {
@@ -20,8 +19,6 @@ package com.nistra.demy.platform.institution.interfaces.rest.resources;
             throw new IllegalArgumentException("Phone number is required");
         if (dniNumber == null || dniNumber.isBlank())
             throw new IllegalArgumentException("DNI number is required");
-        if (academyId == null || academyId <= 0)
-            throw new IllegalArgumentException("Academy ID is required and must be a positive number");
         if (userId == null || userId <= 0)
             throw new IllegalArgumentException("User ID is required and must be a positive number");
     }

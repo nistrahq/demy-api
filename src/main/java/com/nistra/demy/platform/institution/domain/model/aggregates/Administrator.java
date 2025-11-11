@@ -41,13 +41,12 @@ public class Administrator extends AuditableAbstractAggregateRoot<Administrator>
             PersonName personName,
             PhoneNumber phoneNumber,
             DniNumber dniNumber,
-            AcademyId academyId,
             UserId userId
     ) {
         this.personName = personName;
         this.phoneNumber = phoneNumber;
         this.dniNumber = dniNumber;
-        this.academyId = academyId;
+        this.academyId = new AcademyId();
         this.userId = userId;
     }
 
@@ -56,13 +55,20 @@ public class Administrator extends AuditableAbstractAggregateRoot<Administrator>
                 command.personName(),
                 command.phoneNumber(),
                 command.dniNumber(),
-                command.academyId(),
                 command.userId()
         );
     }
 
     public void registerAdministrator(Long academyId, Long userId) {
         this.addDomainEvent(new AdministratorRegisteredEvent(this, academyId, userId));
+    }
+
+    public void associateAcademy(AcademyId academyId) {
+        if (this.academyId == null || this.academyId.academyId() == 0) {
+            this.academyId = academyId;
+        } else {
+            throw new IllegalStateException("Administrator is already associated with an academy.");
+        }
     }
 
     public void disassociateAcademy(AcademyId academyId) {

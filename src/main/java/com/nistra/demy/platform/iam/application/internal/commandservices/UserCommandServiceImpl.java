@@ -1,6 +1,7 @@
 package com.nistra.demy.platform.iam.application.internal.commandservices;
 
 import com.nistra.demy.platform.iam.application.internal.outboundservices.hashing.HashingService;
+import com.nistra.demy.platform.iam.application.internal.outboundservices.identity.IdentityService;
 import com.nistra.demy.platform.iam.application.internal.outboundservices.tokens.TokenService;
 import com.nistra.demy.platform.iam.application.internal.outboundservices.verification.VerificationService;
 import com.nistra.demy.platform.iam.domain.exceptions.UserNotFoundException;
@@ -27,6 +28,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final HashingService hashingService;
     private final TokenService tokenService;
     private final VerificationService verificationService;
+    private final IdentityService identityService;
 
     private final RoleRepository roleRepository;
 
@@ -35,12 +37,14 @@ public class UserCommandServiceImpl implements UserCommandService {
             HashingService hashingService,
             TokenService tokenService,
             VerificationService verificationService,
+            IdentityService identityService,
             RoleRepository roleRepository
     ) {
         this.userRepository = userRepository;
         this.hashingService = hashingService;
         this.tokenService = tokenService;
         this.verificationService = verificationService;
+        this.identityService = identityService;
         this.roleRepository = roleRepository;
     }
 
@@ -74,12 +78,35 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
-    public boolean handle(VerifyUserCommand command) {
+    public Optional<ImmutablePair<User, String>> handle(VerifyUserCommand command) {
         var user = userRepository.findByEmailAddress(new EmailAddress(command.email()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.verifyUser(command.code());
         userRepository.save(user);
-        return true;
+        var token = tokenService.generateToken(user.getEmailAddress().email());
+        return Optional.of(ImmutablePair.of(user, token));
+    }
+
+    @Override
+    public Optional<User> handle(SignUpVerifiedUserCommand command) {
+        if (userRepository.existsByEmailAddress(command.emailAddress()))
+            throw new RuntimeException("Verified username already exists");
+        var roles = (command.roles() == null || command.roles().isEmpty())
+                ? List.of(roleRepository.findByName(Roles.ROLE_USER).orElseThrow(() -> new RuntimeException("Default role not found")))
+                : command.roles().stream()
+                .map(role -> roleRepository.findByName(role.getName()).orElseThrow(() -> new RuntimeException("Role name not found")))
+                .toList();
+        var tenantId = new TenantId(identityService.getTenantId()
+                .orElseThrow(() -> new RuntimeException("Tenant ID not found in identity service")));
+        var user = new User(
+                command.emailAddress(),
+                hashingService.encode(command.password()),
+                roles,
+                tenantId
+        );
+        user.notifySignedUpAndActivated(command.emailAddress().email(), command.password());
+        userRepository.save(user);
+        return userRepository.findByEmailAddress(command.emailAddress());
     }
 
     @Override
