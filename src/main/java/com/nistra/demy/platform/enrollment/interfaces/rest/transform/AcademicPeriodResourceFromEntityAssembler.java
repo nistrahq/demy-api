@@ -20,7 +20,8 @@ public class AcademicPeriodResourceFromEntityAssembler {
                 entity.getPeriodName(),
                 entity.getPeriodDuration().startDate(),
                 entity.getPeriodDuration().endDate(),
-                entity.getIsActive().isActive()
+                entity.getIsActive().isActive(),
+                entity.getAcademyId().academyId()
         );
     }
 }
