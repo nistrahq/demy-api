@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Unit tests for the Academy aggregate using the Arrange-Act-Assert (AAA) pattern.
@@ -24,9 +25,10 @@ class AcademyTest {
         EmailAddress email = new EmailAddress("info@nistra.com");
         PhoneNumber phone = new PhoneNumber("+51", "987654321");
         Ruc ruc = new Ruc("10456789123");
+        AdministratorId administratorId = new AdministratorId(1001L);
 
         // Act
-        Academy academy = new Academy(name, description, address, email, phone, ruc);
+        Academy academy = new Academy(name, description, address, email, phone, ruc, administratorId);
 
         // Assert
         assertNotNull(academy);
@@ -40,6 +42,7 @@ class AcademyTest {
         assertEquals("+51", academy.getPhoneNumber().countryCode());
         assertEquals("987654321", academy.getPhoneNumber().phone());
         assertEquals("10456789123", academy.getRuc().ruc());
+        assertEquals(1001L, academy.getAdministratorId().administratorId());
         assertNotNull(academy.getAdministratorId(), "El ID del administrador debe inicializarse (aunque sea null).");
     }
 
@@ -53,7 +56,8 @@ class AcademyTest {
                 new StreetAddress("Jr. Los Robles 567", "San Isidro", "Lima", "Lima"),
                 new EmailAddress("contacto@demy.com"),
                 new PhoneNumber("+51", "999999999"),
-                new Ruc("10987654321")
+                new Ruc("10987654321"),
+                new AdministratorId(1001L)
         );
 
         // Act
@@ -66,6 +70,7 @@ class AcademyTest {
         assertEquals("Jr. Los Robles 567", academy.getStreetAddress().street());
         assertEquals("contacto@demy.com", academy.getEmailAddress().email());
         assertEquals("10987654321", academy.getRuc().ruc());
+        assertEquals(1001L, academy.getAdministratorId().administratorId());
     }
 
     @Test
@@ -78,7 +83,8 @@ class AcademyTest {
                 new StreetAddress("Calle Falsa 123", "Santiago", "Cusco", "Cusco"),
                 new EmailAddress("test@academy.com"),
                 new PhoneNumber("+51", "911111111"),
-                new Ruc("10765432109")
+                new Ruc("10765432109"),
+                new AdministratorId()
         );
 
         AdministratorId admin1 = new AdministratorId(1L);
