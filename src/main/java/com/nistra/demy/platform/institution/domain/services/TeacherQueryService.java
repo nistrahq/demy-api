@@ -1,6 +1,5 @@
 package com.nistra.demy.platform.institution.domain.services;
 
-import com.nistra.demy.platform.institution.domain.model.aggregates.Academy;
 import com.nistra.demy.platform.institution.domain.model.aggregates.Teacher;
 import com.nistra.demy.platform.institution.domain.model.queries.*;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.EmailAddress;
@@ -15,6 +14,8 @@ public interface TeacherQueryService {
     Optional<Teacher> handle(GetTeacherByFullNameQuery query);
 
     Optional<Teacher> handle(GetTeacherByIdQuery query);
+
+    Optional<Teacher> handle(GetCurrentTeacherQuery query);
 
     Optional<EmailAddress> handle(GetTeacherEmailAddressByUserIdQuery query);
 

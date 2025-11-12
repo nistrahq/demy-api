@@ -1,11 +1,14 @@
 package com.nistra.demy.platform.institution.interfaces.rest.controllers;
 
 import com.nistra.demy.platform.institution.domain.model.queries.GetAllTeachersQuery;
+import com.nistra.demy.platform.institution.domain.model.queries.GetCurrentTeacherQuery;
 import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherEmailAddressByUserIdQuery;
 import com.nistra.demy.platform.institution.domain.services.TeacherCommandService;
 import com.nistra.demy.platform.institution.domain.services.TeacherQueryService;
+import com.nistra.demy.platform.institution.interfaces.rest.resources.CurrentTeacherResource;
 import com.nistra.demy.platform.institution.interfaces.rest.resources.RegisterTeacherResource;
 import com.nistra.demy.platform.institution.interfaces.rest.resources.TeacherResource;
+import com.nistra.demy.platform.institution.interfaces.rest.transform.CurrentTeacherResourceFromEntityAssembler;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.RegisterTeacherCommandFromResourceAssembler;
 import com.nistra.demy.platform.institution.interfaces.rest.transform.TeacherResourceFromEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,5 +79,30 @@ public class TeachersController {
             return emailAddress.map(email -> TeacherResourceFromEntityAssembler.toResourceFromEntity(teacher, email)).orElse(null);
         }).filter(Objects::nonNull).toList();
         return ResponseEntity.ok(teacherResources);
+    }
+
+    @Operation(
+            summary = "Get current teacher",
+            description = "Retrieves the teacher entity associated with the currently authenticated user. " +
+                    "The response also includes the teacher's email address."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Current teacher retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CurrentTeacherResource.class))),
+            @ApiResponse(responseCode = "404", description = "Teacher or associated email not found", content = @Content)
+    })
+    @GetMapping("/me")
+    public ResponseEntity<CurrentTeacherResource> getCurrentTeacher() {
+        var getCurrentTeacherQuery = new GetCurrentTeacherQuery();
+        var teacher = teacherQueryService.handle(getCurrentTeacherQuery);
+        if (teacher.isEmpty()) return ResponseEntity.notFound().build();
+        var teacherEntity = teacher.get();
+        var getTeacherEmailAddressByUserIdQuery = new GetTeacherEmailAddressByUserIdQuery(teacherEntity.getUserId());
+        var emailAddress = teacherQueryService.handle(getTeacherEmailAddressByUserIdQuery);
+        if (emailAddress.isEmpty()) return ResponseEntity.notFound().build();
+        var emailAddressValueObject = emailAddress.get();
+        var currentTeacherResource = CurrentTeacherResourceFromEntityAssembler.toResourceFromEntity(teacherEntity, emailAddressValueObject);
+        return new ResponseEntity<>(currentTeacherResource, HttpStatus.OK);
     }
 }
