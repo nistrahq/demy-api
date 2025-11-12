@@ -1,5 +1,6 @@
-package com.nistra.demy.platform.institution.bdd.stepdefinitions;
+package com.nistra.demy.platform.institution.bdd.steps;
 
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,12 +18,11 @@ public class RegisterAdministratorSteps {
 
     @Given("the academy service is available")
     public void the_academy_service_is_available() {
-        // Simulación de disponibilidad del servicio (mock o in-memory)
         assertTrue(true);
     }
 
     @When("the client sends a registration request with:")
-    public void the_client_sends_a_registration_request_with(io.cucumber.datatable.DataTable dataTable) {
+    public void the_client_sends_a_registration_request_with(DataTable dataTable) {
         Map<String, String> data = dataTable.asMaps().getFirst();
 
         try {
@@ -30,12 +30,11 @@ public class RegisterAdministratorSteps {
                     new PersonName(data.get("firstName"), data.get("lastName")),
                     new PhoneNumber(data.get("phoneCountryCode"), data.get("phoneNumber")),
                     new DniNumber(data.get("dniNumber")),
-                    new AcademyId(),
-                    new UserId()
+                    new UserId(Long.valueOf(data.get("userId")))
             );
 
             Administrator administrator = new Administrator(command);
-            administrator.registerAdministrator(command.academyId().academyId(), command.userId().userId());
+            administrator.registerAdministrator(1L, command.userId().userId());
 
             responseStatus = 201;
             responseMessage = "Administrator registered successfully";
