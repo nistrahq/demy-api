@@ -10,6 +10,7 @@ import com.nistra.demy.platform.enrollment.domain.model.commands.DeleteEnrollmen
 import com.nistra.demy.platform.enrollment.domain.model.commands.UpdateEnrollmentCommand;
 import com.nistra.demy.platform.enrollment.domain.services.EnrollmentCommandService;
 import com.nistra.demy.platform.enrollment.infrastructure.persistence.jpa.repositories.EnrollmentRepository;
+import com.nistra.demy.platform.enrollment.infrastructure.persistence.jpa.repositories.StudentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -18,14 +19,17 @@ import java.util.Optional;
 public class EnrollmentCommandServiceImpl implements EnrollmentCommandService {
 
     private final EnrollmentRepository enrollmentRepository;
+    private final StudentRepository studentRepository;
     private final ExternalSchedulingService externalSchedulingService;
     private final ExternalIamService externalIamService;
 
     public EnrollmentCommandServiceImpl(
             EnrollmentRepository enrollmentRepository,
+            StudentRepository studentRepository,
             ExternalSchedulingService externalSchedulingService,
             ExternalIamService externalIamService) {
         this.enrollmentRepository = enrollmentRepository;
+        this.studentRepository = studentRepository;
         this.externalSchedulingService = externalSchedulingService;
         this.externalIamService = externalIamService;
     }
@@ -55,6 +59,11 @@ public class EnrollmentCommandServiceImpl implements EnrollmentCommandService {
                 command.money(),
                 command.paymentStatus()
         );
+
+        var student = studentRepository.findById(command.studentId().studentId())
+                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+
+        enrollment.registerEnrollmentEvent(student.getDni());
 
         try {
             enrollmentRepository.save(enrollment);

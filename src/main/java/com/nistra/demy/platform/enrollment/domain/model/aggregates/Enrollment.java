@@ -1,8 +1,10 @@
 package com.nistra.demy.platform.enrollment.domain.model.aggregates;
 
+import com.nistra.demy.platform.enrollment.domain.model.events.StudentEnrolledEvent;
 import com.nistra.demy.platform.enrollment.domain.model.valueobjects.*;
 import com.nistra.demy.platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.DniNumber;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -103,5 +105,11 @@ public class Enrollment extends AuditableAbstractAggregateRoot<Enrollment> {
         );
     }
 
-
+    public void registerEnrollmentEvent(DniNumber dniNumber) {
+        addDomainEvent(new StudentEnrolledEvent(
+                this,
+                this.studentId.studentId(),
+                dniNumber.dniNumber()
+        ));
+    }
 }
