@@ -9,6 +9,8 @@ import com.nistra.demy.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+
 @Entity
 public class Enrollment extends AuditableAbstractAggregateRoot<Enrollment> {
 
@@ -94,6 +96,9 @@ public class Enrollment extends AuditableAbstractAggregateRoot<Enrollment> {
             Money money,
             PaymentStatus paymentStatus
     ) {
+        if (money.amount().compareTo(BigDecimal.ZERO) <= 0)
+            throw new IllegalArgumentException("Error: Enrollment amount must be positive");
+
         return new Enrollment(
                 studentId,
                 periodId,
