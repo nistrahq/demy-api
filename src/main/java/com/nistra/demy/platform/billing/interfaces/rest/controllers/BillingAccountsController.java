@@ -2,14 +2,12 @@ package com.nistra.demy.platform.billing.interfaces.rest.controllers;
 
 import com.nistra.demy.platform.billing.domain.model.commands.DeleteInvoiceCommand;
 import com.nistra.demy.platform.billing.domain.model.commands.MarkInvoiceAsPaidCommand;
-import com.nistra.demy.platform.billing.domain.model.queries.GetAllBillingAccountsQuery;
-import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByBillingAccountIdQuery;
-import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByStudentIdQuery;
-import com.nistra.demy.platform.billing.domain.model.queries.GetBillingAccountByIdQuery;
+import com.nistra.demy.platform.billing.domain.model.queries.*;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountCommandService;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountQueryService;
 import com.nistra.demy.platform.billing.interfaces.rest.resources.*;
 import com.nistra.demy.platform.billing.interfaces.rest.transform.*;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.DniNumber;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.StudentId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -101,7 +99,7 @@ public class BillingAccountsController {
             @Parameter(description = "Invoice identifier", example = "5")
             @PathVariable Long invoiceId
     ) {
-        var markInvoiceAsPaidCommand = new MarkInvoiceAsPaidCommand(invoiceId, billingAccountId);
+        var markInvoiceAsPaidCommand = new MarkInvoiceAsPaidCommand(billingAccountId, invoiceId);
         var invoice = billingAccountCommandService.handle(markInvoiceAsPaidCommand);
         if (invoice.isEmpty()) return ResponseEntity.badRequest().build();
         var invoiceEntity = invoice.get();
@@ -170,13 +168,31 @@ public class BillingAccountsController {
     )
     @ApiResponse(responseCode = "200", description = "List of invoices for the student",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = InvoiceResource.class)))
-    @GetMapping("/invoices/by-student/{studentId}")
+    @GetMapping("/invoices/by-student-id/{studentId}")
     public ResponseEntity<List<InvoiceResource>> getAllInvoicesByStudentId(
             @Parameter(description = "Student identifier", example = "10")
             @PathVariable Long studentId
     ) {
         var getAllInvoicesByStudentIdQuery = new GetAllInvoicesByStudentIdQuery(new StudentId(studentId));
         var invoices = billingAccountQueryService.handle(getAllInvoicesByStudentIdQuery);
+        if (invoices.isEmpty()) return ResponseEntity.ok(List.of());
+        var invoiceResources = InvoiceResourceFromEntityAssembler.toResourcesFromEntities(invoices);
+        return new ResponseEntity<>(invoiceResources, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "List all invoices by student DNI",
+            description = "Retrieves all invoices across all billing accounts for a given student."
+    )
+    @ApiResponse(responseCode = "200", description = "List of invoices for the student",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = InvoiceResource.class)))
+    @GetMapping("/invoices/by-student-dni/{dniNumber}")
+    public ResponseEntity<List<InvoiceResource>> getAllInvoicesByStudentDniNumber(
+            @Parameter(description = "Student DNI", example = "70123456")
+            @PathVariable String dniNumber
+    ) {
+        var getAllInvoicesByStudentDniNumberQuery = new GetAllInvoicesByStudentDniNumberQuery(new DniNumber(dniNumber));
+        var invoices = billingAccountQueryService.handle(getAllInvoicesByStudentDniNumberQuery);
         if (invoices.isEmpty()) return ResponseEntity.ok(List.of());
         var invoiceResources = InvoiceResourceFromEntityAssembler.toResourcesFromEntities(invoices);
         return new ResponseEntity<>(invoiceResources, HttpStatus.OK);

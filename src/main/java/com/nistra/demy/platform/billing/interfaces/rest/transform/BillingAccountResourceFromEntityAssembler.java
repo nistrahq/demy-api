@@ -11,6 +11,7 @@ public class BillingAccountResourceFromEntityAssembler {
         return new BillingAccountResource(
                 entity.getId(),
                 entity.getStudentId().studentId(),
+                entity.getDniNumber().dniNumber(),
                 entity.getAcademyId().academyId(),
                 InvoiceResourceFromEntityAssembler.toResourcesFromEntities(entity.getInvoices())
         );
