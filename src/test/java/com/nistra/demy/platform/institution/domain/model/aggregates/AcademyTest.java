@@ -28,7 +28,7 @@ class AcademyTest {
         AdministratorId administratorId = new AdministratorId(1001L);
 
         // Act
-        Academy academy = new Academy(name, description, address, email, phone, ruc, administratorId);
+        Academy academy = new Academy(name, description, address, email, phone, ruc);
 
         // Assert
         assertNotNull(academy);
@@ -83,8 +83,7 @@ class AcademyTest {
                 new StreetAddress("Calle Falsa 123", "Santiago", "Cusco", "Cusco"),
                 new EmailAddress("test@academy.com"),
                 new PhoneNumber("+51", "911111111"),
-                new Ruc("10765432109"),
-                new AdministratorId()
+                new Ruc("10765432109")
         );
 
         AdministratorId admin1 = new AdministratorId(1L);
