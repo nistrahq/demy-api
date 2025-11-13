@@ -17,8 +17,8 @@ public record UpdateAttendanceRecordStatusCommand(
         AttendanceStatus newStatus
 ) {
     public UpdateAttendanceRecordStatusCommand {
-        if (classAttendanceId == null) throw new IllegalArgumentException("id requerido");
-        if (dni == null) throw new IllegalArgumentException("dni requerido");
-        if (newStatus == null) throw new IllegalArgumentException("status requerido");
+        if (classAttendanceId == null) throw new IllegalArgumentException("id is required");
+        if (dni == null) throw new IllegalArgumentException("dni is required");
+        if (newStatus == null) throw new IllegalArgumentException("status is required");
     }
 }
