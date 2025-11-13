@@ -78,8 +78,7 @@ public class Academy extends AuditableAbstractAggregateRoot<Academy> {
                    StreetAddress streetAddress,
                    EmailAddress emailAddress,
                    PhoneNumber phoneNumber,
-                   Ruc ruc,
-                   AdministratorId administratorId
+                   Ruc ruc
     ) {
         this.academyName = academyName;
         this.academyDescription = academyDescription;
@@ -87,7 +86,6 @@ public class Academy extends AuditableAbstractAggregateRoot<Academy> {
         this.emailAddress = emailAddress;
         this.phoneNumber = phoneNumber;
         this.ruc = ruc;
-        this.administratorId = administratorId;
     }
 
     /**
@@ -103,8 +101,7 @@ public class Academy extends AuditableAbstractAggregateRoot<Academy> {
                 command.streetAddress(),
                 command.emailAddress(),
                 command.phoneNumber(),
-                command.ruc(),
-                command.administratorId()
+                command.ruc()
         );
     }
 
