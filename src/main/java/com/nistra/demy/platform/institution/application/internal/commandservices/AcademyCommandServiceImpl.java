@@ -66,6 +66,7 @@ public class AcademyCommandServiceImpl implements AcademyCommandService {
                             .orElseThrow(() -> new IllegalArgumentException("No administrator found with id " + command.administratorId().administratorId()));
             administrator.registerAdministrator(academy.getId(), administrator.getUserId().userId());
             administratorRepository.save(administrator);
+            System.out.println("Antes de assign: " + academy.getAdministratorId());
             academy.assignAdministrator(new AdministratorId(administrator.getId()));
             administrator.associateAcademy(new AcademyId(academy.getId()));
             academyRepository.save(academy);
