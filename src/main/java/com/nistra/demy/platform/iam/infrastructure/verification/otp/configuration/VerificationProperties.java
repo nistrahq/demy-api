@@ -12,4 +12,5 @@ import org.springframework.stereotype.Component;
 public class VerificationProperties {
     private Integer expirationMinutes = 15;
     private Integer codeLength = 6;
+    private Integer passwordLength = 12;
 }

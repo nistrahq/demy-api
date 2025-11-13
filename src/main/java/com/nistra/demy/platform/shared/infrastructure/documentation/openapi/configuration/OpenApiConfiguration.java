@@ -2,6 +2,7 @@ package com.nistra.demy.platform.shared.infrastructure.documentation.openapi.con
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -26,6 +27,13 @@ public class OpenApiConfiguration {
     @Value("${documentation.application.version}")
     private String applicationVersion;
 
+    // Contact
+    @Value("${documentation.application.contact.name}")
+    private String contactName;
+
+    @Value("${documentation.application.contact.email}")
+    private String contactEmail;
+
     @Bean
     public OpenAPI demyPlatformOpenAPI() {
 
@@ -41,16 +49,23 @@ public class OpenApiConfiguration {
         var securityRequirement =  new SecurityRequirement()
                 .addList("Bearer Authentication");
 
+        // Configure contact information
+        var contact  = new Contact()
+                .name(contactName)
+                .email(contactEmail);
+
         // Configure API information
         var info = new Info()
                 .title(applicationTitle)
                 .description(applicationDescription)
-                .version(applicationVersion);
+                .version(applicationVersion)
+                .contact(contact);
 
         return new OpenAPI()
                 .openapi("3.0.1")
                 .info(info)
-                .servers(List.of(new Server().url("https://demy-api-production.up.railway.app")))
+                // TODO: Update server URL when deploying to production
+                // .servers(List.of(new Server().url("https://demy-api-production.up.railway.app")))
                 .addSecurityItem(securityRequirement)
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication", jwtSecurityScheme));
