@@ -42,6 +42,13 @@ public class TeacherQueryServiceImpl implements TeacherQueryService {
     }
 
     @Override
+    public Optional<Teacher> handle(GetCurrentTeacherQuery query) {
+        var currentUserId = externalIamService.fetchCurrentUserId()
+                .orElseThrow(() -> new RuntimeException("User fetch authenticated failed"));
+        return teacherRepository.findByUserId(currentUserId);
+    }
+
+    @Override
     public Optional<EmailAddress> handle(GetTeacherEmailAddressByUserIdQuery query) {
         return externalIamService.fetchEmailAddressByUserId(query.userId());
     }

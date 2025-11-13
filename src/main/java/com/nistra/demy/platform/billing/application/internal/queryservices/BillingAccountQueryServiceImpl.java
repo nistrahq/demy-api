@@ -1,12 +1,10 @@
 package com.nistra.demy.platform.billing.application.internal.queryservices;
 
+import com.nistra.demy.platform.billing.application.internal.outboundservices.acl.ExternalEnrollmentService;
 import com.nistra.demy.platform.billing.application.internal.outboundservices.acl.ExternalIamService;
 import com.nistra.demy.platform.billing.domain.model.aggregates.BillingAccount;
 import com.nistra.demy.platform.billing.domain.model.entities.Invoice;
-import com.nistra.demy.platform.billing.domain.model.queries.GetAllBillingAccountsQuery;
-import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByBillingAccountIdQuery;
-import com.nistra.demy.platform.billing.domain.model.queries.GetAllInvoicesByStudentIdQuery;
-import com.nistra.demy.platform.billing.domain.model.queries.GetBillingAccountByIdQuery;
+import com.nistra.demy.platform.billing.domain.model.queries.*;
 import com.nistra.demy.platform.billing.domain.services.BillingAccountQueryService;
 import com.nistra.demy.platform.billing.infrastructure.persistence.jpa.repositories.BillingAccountRepository;
 import org.springframework.stereotype.Service;
@@ -20,13 +18,16 @@ public class BillingAccountQueryServiceImpl implements BillingAccountQueryServic
 
     private final BillingAccountRepository billingAccountRepository;
     private final ExternalIamService externalIamService;
+    private final ExternalEnrollmentService externalEnrollmentService;
 
     public BillingAccountQueryServiceImpl(
             BillingAccountRepository billingAccountRepository,
-            ExternalIamService externalIamService
+            ExternalIamService externalIamService,
+            ExternalEnrollmentService externalEnrollmentService
     ) {
         this.billingAccountRepository = billingAccountRepository;
         this.externalIamService = externalIamService;
+        this.externalEnrollmentService = externalEnrollmentService;
     }
 
     @Override
@@ -53,6 +54,15 @@ public class BillingAccountQueryServiceImpl implements BillingAccountQueryServic
     public List<Invoice> handle(GetAllInvoicesByStudentIdQuery query) {
         var billingAccount = billingAccountRepository.findByStudentId(query.studentId())
                 .orElseThrow(() -> new RuntimeException("Billing account not found for student id: %s".formatted(query.studentId())));
+        return billingAccount.getInvoices();
+    }
+
+    @Override
+    public List<Invoice> handle(GetAllInvoicesByStudentDniNumberQuery query) {
+        var studentId = externalEnrollmentService.fetchStudentInvoiceIdByDniNumber(query.dniNumber().dniNumber())
+                .orElseThrow(() -> new RuntimeException("Student not found for DNI number: %s".formatted(query.dniNumber().dniNumber())));
+        var billingAccount = billingAccountRepository.findByStudentId(studentId)
+                .orElseThrow(() -> new RuntimeException("Billing account not found for student id: %s".formatted(studentId.studentId())));
         return billingAccount.getInvoices();
     }
 }
