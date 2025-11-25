@@ -2,6 +2,7 @@ package com.nistra.demy.platform.scheduling.interfaces.rest.controllers;
 
 import com.nistra.demy.platform.institution.domain.model.queries.GetTeacherByUserIdQuery;
 import com.nistra.demy.platform.institution.domain.services.TeacherQueryService;
+import com.nistra.demy.platform.scheduling.application.internal.outboundservices.acl.ExternalEnrollmentService;
 import com.nistra.demy.platform.scheduling.domain.model.commands.*;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetAllWeeklySchedulesQuery;
 import com.nistra.demy.platform.scheduling.domain.model.queries.GetSchedulesByTeacherIdQuery;
@@ -42,19 +43,23 @@ public class WeeklySchedulesController {
     private final WeeklyScheduleResourceFromEntityAssembler weeklyScheduleResourceFromEntityAssembler;
     private final ScheduleResourceFromEntityAssembler scheduleResourceFromEntityAssembler;
     private final TeacherQueryService teacherQueryService;
+    private final ExternalEnrollmentService externalEnrollmentService;
 
     public WeeklySchedulesController(
             WeeklyScheduleCommandService weeklyScheduleCommandService,
             WeeklyScheduleQueryService weeklyScheduleQueryService,
-            WeeklyScheduleResourceFromEntityAssembler weeklyScheduleResourceFromEntityAssembler, // INYECTADO
+            WeeklyScheduleResourceFromEntityAssembler weeklyScheduleResourceFromEntityAssembler,
             ScheduleResourceFromEntityAssembler scheduleResourceFromEntityAssembler,
-            TeacherQueryService teacherQueryService
+            TeacherQueryService teacherQueryService,
+            ExternalEnrollmentService externalEnrollmentService
+
     ) {
         this.weeklyScheduleCommandService = weeklyScheduleCommandService;
         this.weeklyScheduleQueryService = weeklyScheduleQueryService;
         this.weeklyScheduleResourceFromEntityAssembler = weeklyScheduleResourceFromEntityAssembler;
         this.scheduleResourceFromEntityAssembler = scheduleResourceFromEntityAssembler;
         this.teacherQueryService = teacherQueryService;
+        this.externalEnrollmentService = externalEnrollmentService;
     }
 
     /**
@@ -293,4 +298,35 @@ public class WeeklySchedulesController {
         var classSessionResource = scheduleResourceFromEntityAssembler.toResourceFromEntity(updatedClassSession); // Corregido: Usa inyectado
         return ResponseEntity.ok(classSessionResource);
     }
+
+    /**
+     * Retrieves the Weekly Schedule associated with an enrolled student via their User ID.
+     *
+     * @param userId The User ID (from IAM) of the student.
+     * @return A ResponseEntity containing the WeeklyScheduleResource or a 404 Not Found.
+     */
+    @GetMapping("/by-student/{userId}")
+    @Operation(summary = "Get Schedule by Student User Id", description = "Retrieves the schedule associated with a student's User ID by consulting the active enrollment.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Schedule found"),
+            @ApiResponse(responseCode = "404", description = "Student or active Enrollment not found")
+    })
+    public ResponseEntity<WeeklyScheduleResource> getScheduleByStudentUserId(@PathVariable Long userId) {
+        var weeklyScheduleId = externalEnrollmentService.fetchScheduleIdByStudentUserId(userId);
+
+        if (weeklyScheduleId.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var getWeeklyScheduleByIdQuery = new GetWeeklyScheduleByIdQuery(weeklyScheduleId.get());
+        var weeklySchedule = weeklyScheduleQueryService.handle(getWeeklyScheduleByIdQuery);
+
+        if (weeklySchedule.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var weeklyScheduleResource = weeklyScheduleResourceFromEntityAssembler.toResourceFromEntity(weeklySchedule.get());
+        return ResponseEntity.ok(weeklyScheduleResource);
+    }
+
 }
