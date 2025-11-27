@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = "/reports/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/reports/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Reports", description = "Endpoints for managing accounting reports")
 public class ReportsController {
 
