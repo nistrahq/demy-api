@@ -5,4 +5,6 @@ public interface EnrollmentsContextFacade {
     String fetchStudentFullNameByDni(String dni);
 
     Long fetchStudentIdByDni(String dni);
+
+    Long fetchScheduleIdByStudentUserId(Long userId);
 }

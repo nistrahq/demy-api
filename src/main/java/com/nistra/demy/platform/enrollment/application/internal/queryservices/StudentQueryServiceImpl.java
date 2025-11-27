@@ -63,4 +63,14 @@ public class StudentQueryServiceImpl implements StudentQueryService {
                 .orElseThrow(() -> new RuntimeException("Student not found for DNI: %s".formatted(query.dniNumber().dniNumber())));
         return Optional.of(new StudentId(studentId.getId()));
     }
+
+    @Override
+    public Optional<Student> handle(GetStudentByUserIdQuery query) {
+        var academyId = externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalStateException("Current academy ID not found"));
+
+        return studentRepository.findByUserId(query.userId())
+                .filter(student -> student.getAcademyId().equals(academyId));
+    }
+
 }
