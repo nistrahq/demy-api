@@ -4,6 +4,7 @@ import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.properties.HorizontalAlignment;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ImageWriter {
 
-    private static final String LOGO_PATH = "src/main/resources/static/images/demy-combination-mark-original.png";
+    private static final String LOGO_PATH = "static/images/demy-combination-mark-original.png";
 
     /**
      * Adds company logo to document.
@@ -26,7 +27,9 @@ public class ImageWriter {
      */
     public void addLogo(Document document) {
         try {
-            Image logo = new Image(ImageDataFactory.create(LOGO_PATH))
+            ClassPathResource resource = new ClassPathResource(LOGO_PATH);
+            byte[] imageBytes = resource.getContentAsByteArray();
+            Image logo = new Image(ImageDataFactory.create(imageBytes))
                     .scaleToFit(80, 80)
                     .setHorizontalAlignment(HorizontalAlignment.CENTER)
                     .setMarginBottom(20);
