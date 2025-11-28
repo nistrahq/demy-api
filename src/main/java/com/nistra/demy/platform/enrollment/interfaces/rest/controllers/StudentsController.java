@@ -1,11 +1,7 @@
 package com.nistra.demy.platform.enrollment.interfaces.rest.controllers;
 
-import com.nistra.demy.platform.enrollment.domain.model.commands.CreateStudentCommand;
 import com.nistra.demy.platform.enrollment.domain.model.commands.DeleteStudentCommand;
-import com.nistra.demy.platform.enrollment.domain.model.queries.GetAllStudentsQuery;
-import com.nistra.demy.platform.enrollment.domain.model.queries.GetStudentByDniQuery;
-import com.nistra.demy.platform.enrollment.domain.model.queries.GetStudentByIdQuery;
-import com.nistra.demy.platform.enrollment.domain.model.queries.GetStudentEmailAddressByUserIdQuery;
+import com.nistra.demy.platform.enrollment.domain.model.queries.*;
 import com.nistra.demy.platform.enrollment.domain.services.StudentCommandService;
 import com.nistra.demy.platform.enrollment.domain.services.StudentQueryService;
 import com.nistra.demy.platform.enrollment.interfaces.rest.resources.CreateStudentResource;
@@ -193,5 +189,29 @@ public class StudentsController {
         var deleteCommand = new DeleteStudentCommand(studentId);
         studentCommandService.handle(deleteCommand);
         return ResponseEntity.ok(new MessageResource("Student successfully deleted"));
+    }
+
+    /**
+     * Retrieves the currently authenticated student's information.
+     *
+     * @return the current student resource or not found status
+     */
+    @GetMapping("/me")
+    @Operation(summary = "Get current student", description = "Retrieve the currently authenticated student's information")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Current student found"),
+            @ApiResponse(responseCode = "404", description = "Current student not found")
+    })
+    public ResponseEntity<StudentResource> getCurrentAdministrator() {
+        var getCurrentStudentQuery = new GetCurrentStudentQuery();
+        var student = studentQueryService.handle(getCurrentStudentQuery);
+        if (student.isEmpty()) return ResponseEntity.notFound().build();
+        var studentEntity = student.get();
+        var getStudentEmailAddressByUserIdQuery = new GetStudentEmailAddressByUserIdQuery(studentEntity.getUserId());
+        var emailAddress = studentQueryService.handle(getStudentEmailAddressByUserIdQuery);
+        if (emailAddress.isEmpty()) return ResponseEntity.notFound().build();
+        var emailAddressValueObject = emailAddress.get();
+        var currentStudentResource = StudentResourceFromEntityAssembler.toResourceFromEntity(studentEntity, emailAddressValueObject);
+        return new ResponseEntity<>(currentStudentResource, HttpStatus.OK);
     }
 }
