@@ -19,6 +19,11 @@ public class ExternalIamService {
         this.iamContextFacade = iamContextFacade;
     }
 
+    public Optional<UserId> fetchCurrentUserId() {
+        var userId = iamContextFacade.fetchAuthenticatedUserId();
+        return userId == 0L ? Optional.empty() : Optional.of(new UserId(userId));
+    }
+
     public Optional<AcademyId> fetchCurrentAcademyId() {
         var academyId = iamContextFacade.fetchAuthenticatedUserTenantId();
         return academyId == 0L ? Optional.empty() : Optional.of(new AcademyId(academyId));

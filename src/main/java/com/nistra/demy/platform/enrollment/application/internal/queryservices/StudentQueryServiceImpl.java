@@ -73,4 +73,10 @@ public class StudentQueryServiceImpl implements StudentQueryService {
                 .filter(student -> student.getAcademyId().equals(academyId));
     }
 
+    @Override
+    public Optional<Student> handle(GetCurrentStudentQuery query) {
+        var currentUserId = externalIamService.fetchCurrentUserId()
+                .orElseThrow(() -> new IllegalStateException("Current user ID not found"));
+        return studentRepository.findByUserId(currentUserId);
+    }
 }
