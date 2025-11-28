@@ -16,4 +16,5 @@ public interface StudentQueryService {
     Optional<EmailAddress> handle(GetStudentEmailAddressByUserIdQuery query);
     Optional<StudentId> handle(GetStudentIdByDniQuery query);
     Optional<Student> handle(GetStudentByUserIdQuery query);
+    Optional<Student> handle(GetCurrentStudentQuery query);
 }
