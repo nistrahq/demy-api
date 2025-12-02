@@ -12,8 +12,6 @@ public record VerificationCode(
     public VerificationCode {
         if (code != null && code.isBlank())
             throw new IllegalArgumentException("Verification code cannot be empty");
-        if (expiration != null && expiration.isBefore(LocalDateTime.now()))
-            throw new IllegalArgumentException("Expiration date cannot be in the past");
     }
 
     public boolean isExpired() {

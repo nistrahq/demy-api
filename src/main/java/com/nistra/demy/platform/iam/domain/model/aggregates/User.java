@@ -2,6 +2,7 @@ package com.nistra.demy.platform.iam.domain.model.aggregates;
 
 
 import com.nistra.demy.platform.iam.domain.model.entities.Role;
+import com.nistra.demy.platform.iam.domain.model.events.UserNewPasswordVerificationCodeAssignedEvent;
 import com.nistra.demy.platform.iam.domain.model.events.UserSignedUpAndActivatedEvent;
 import com.nistra.demy.platform.iam.domain.model.events.UserVerificationCodeAssignedEvent;
 import com.nistra.demy.platform.iam.domain.model.valueobjects.AccountStatus;
@@ -118,6 +119,24 @@ public class User extends AuditableAbstractAggregateRoot<User> {
                 this,
                 email,
                 password));
+    }
+
+    public void assignNewPasswordVerificationCode(String email, String code, Integer expirationMinutes) {
+        this.verificationCode = new VerificationCode(code, LocalDateTime.now().plusMinutes(expirationMinutes));
+        this.addDomainEvent(new UserNewPasswordVerificationCodeAssignedEvent(
+                this,
+                email,
+                code,
+                expirationMinutes));
+    }
+
+    public void verifyPasswordResetCode(String code) {
+        if (!this.verificationCode.matches(code)) throw new IllegalArgumentException("Invalid verification code");
+        this.verificationCode = new VerificationCode(null, null);
+    }
+
+    public void resetPassword(String newPassword) {
+        this.password = newPassword;
     }
 
     public void associateTenant(TenantId tenantId) {
