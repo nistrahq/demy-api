@@ -96,4 +96,42 @@ public class AuthenticationController {
         userCommandService.handle(resendVerificationCodeCommand);
         return ResponseEntity.ok(new MessageResource("Verification code resent successfully!"));
     }
+
+    @PostMapping("/request-reset-password")
+    public ResponseEntity<MessageResource> requestResetPassword(@RequestBody RequestResetPasswordResource requestResetPasswordResource) {
+        var requestResetPasswordCommand = RequestResetPasswordCommandFromResourceAssembler.toCommandFromResource(requestResetPasswordResource);
+        userCommandService.handle(requestResetPasswordCommand);
+        return ResponseEntity.ok(new MessageResource("If the email is registered, a password reset code has been sent."));
+    }
+
+    @Operation(
+            summary = "Reset password",
+            description = "Resets the user's password after verifying the reset code. Returns authentication token for immediate login."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Password reset successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResetPasswordResponseResource.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request or verification code not verified", content = @Content)
+    })
+    @PostMapping("/reset-password")
+    public ResponseEntity<ResetPasswordResponseResource> resetPassword(@RequestBody ResetPasswordResource resetPasswordResource) {
+        var resetPasswordCommand = ResetPasswordCommandFromResourceAssembler.toCommandFromResource(resetPasswordResource);
+        var resetPasswordResult = userCommandService.handle(resetPasswordCommand);
+        if (resetPasswordResult.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        var resetPasswordResponseResource = ResetPasswordResponseResourceFromEntityAssembler.toResourceFromEntity(
+                resetPasswordResult.get().getLeft(),
+                resetPasswordResult.get().getRight()
+        );
+        return ResponseEntity.ok(resetPasswordResponseResource);
+    }
+
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<MessageResource> verifyResetCode(@RequestBody VerifyResetPasswordCodeResource verifyResetPasswordCodeResource) {
+        var verifyResetPasswordCodeCommand = VerifyResetPasswordCodeCommandFromResourceAssembler.toCommandFromResource(verifyResetPasswordCodeResource);
+        userCommandService.handle(verifyResetPasswordCodeCommand);
+        return ResponseEntity.ok(new MessageResource("Password reset code verified successfully."));
+    }
 }
