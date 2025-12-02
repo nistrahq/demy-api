@@ -29,7 +29,12 @@ public class AttendanceRecord extends AuditableModel {
     private ClassAttendance classAttendance;
 
     @Embedded
-    @Column(nullable = false)
+    @AttributeOverrides({
+            @AttributeOverride(
+                    name = "dniNumber",
+                    column = @Column(name = "dni_number", nullable = false, unique = false)
+            )
+    })
     private DniNumber dni;
 
     @Enumerated(EnumType.STRING)
