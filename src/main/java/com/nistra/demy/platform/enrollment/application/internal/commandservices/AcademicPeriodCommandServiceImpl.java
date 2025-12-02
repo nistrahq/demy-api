@@ -1,12 +1,15 @@
 package com.nistra.demy.platform.enrollment.application.internal.commandservices;
 
 import com.nistra.demy.platform.enrollment.application.internal.outboundservices.acl.ExternalIamService;
+import com.nistra.demy.platform.enrollment.domain.exceptions.AcademicPeriodAlreadyExistsException;
+import com.nistra.demy.platform.enrollment.domain.exceptions.AcademicPeriodNotFoundException;
 import com.nistra.demy.platform.enrollment.domain.model.aggregates.AcademicPeriod;
 import com.nistra.demy.platform.enrollment.domain.model.commands.CreateAcademicPeriodCommand;
 import com.nistra.demy.platform.enrollment.domain.model.commands.DeleteAcademicPeriodCommand;
 import com.nistra.demy.platform.enrollment.domain.model.commands.UpdateAcademicPeriodCommand;
 import com.nistra.demy.platform.enrollment.domain.services.AcademicPeriodCommandService;
 import com.nistra.demy.platform.enrollment.infrastructure.persistence.jpa.repositories.AcademicPeriodRepository;
+import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -23,58 +26,79 @@ public class AcademicPeriodCommandServiceImpl implements AcademicPeriodCommandSe
         this.externalIamService = externalIamService;
     }
 
+    private AcademyId getContextAcademyId() {
+        return externalIamService.fetchCurrentAcademyId()
+                .orElseThrow(() -> new IllegalArgumentException("Academy not found"));
+    }
+
     @Override
     public Long handle(CreateAcademicPeriodCommand command) {
+        var academyId = getContextAcademyId();
+
         if (academicPeriodRepository.existsByPeriodName(command.periodName())) {
-            throw new IllegalArgumentException("Period name already exists");
+            throw new AcademicPeriodAlreadyExistsException(command.periodName());
         }
 
-        var academyId = externalIamService.fetchCurrentAcademyId().
-                orElseThrow(() -> new IllegalArgumentException("Academy not found"));
-
-        var academicPeriod = new AcademicPeriod(
+        var academicPeriod = AcademicPeriod.createActiveAcademicPeriod(
                 command.periodName(),
                 command.startDate(),
                 command.endDate(),
-                command.isActive(),
                 academyId
         );
 
         try {
             academicPeriodRepository.save(academicPeriod);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Unable to save academic period");
+            throw new RuntimeException("Failed to create academic period: " + e.getMessage(), e);
         }
         return academicPeriod.getId();
     }
 
     @Override
     public void handle(DeleteAcademicPeriodCommand command) {
-        if (!academicPeriodRepository.existsById(command.academicPeriodId())) {
-            throw new IllegalArgumentException("Academic period does not exist");
+        var academyId = getContextAcademyId();
+
+        var academicPeriod = academicPeriodRepository.findById(command.academicPeriodId())
+                .orElseThrow(() -> new AcademicPeriodNotFoundException(command.academicPeriodId()));
+
+        if (!academicPeriod.getAcademyId().equals(academyId)) {
+            throw new AcademicPeriodNotFoundException(command.academicPeriodId());
         }
+
         try {
             academicPeriodRepository.deleteById(command.academicPeriodId());
         } catch (Exception e) {
-            throw new IllegalArgumentException("Error while deleting academic period");
+            throw new RuntimeException("Error while deleting academic period" + e.getMessage(), e);
         }
     }
 
     @Override
     public Optional<AcademicPeriod> handle(UpdateAcademicPeriodCommand command) {
+        var academyId = getContextAcademyId();
+
         if (academicPeriodRepository.existsByPeriodNameAndIdIsNot(command.periodName(), command.academicPeriodId())) {
-            throw new IllegalArgumentException("Academic period with name %s alredy exists".formatted(command.periodName()));
+            throw new AcademicPeriodAlreadyExistsException(command.periodName());
         }
-        var result = academicPeriodRepository.findById(command.academicPeriodId());
-        if (result.isEmpty()) {
-            throw new IllegalArgumentException("Academic period with id %s not found".formatted(command.academicPeriodId()));
+
+        var academicPeriod = academicPeriodRepository.findById(command.academicPeriodId())
+                .orElseThrow(() -> new AcademicPeriodNotFoundException(command.academicPeriodId()));;
+
+        if (!academicPeriod.getAcademyId().equals(academyId)) {
+            throw new AcademicPeriodNotFoundException(command.academicPeriodId());
         }
-        var academicPeriodToUdpate = result.get();
+
         try {
-            var updatedAcademicPeriod = academicPeriodRepository.save(academicPeriodToUdpate.updateInformation(command.periodName(), command.startDate(), command.endDate(), command.isActive()));
+            var updatedAcademicPeriod = academicPeriodRepository.save(
+                    academicPeriod.updateInformation(
+                        command.periodName(),
+                        command.startDate(),
+                        command.endDate(),
+                        command.isActive()
+                    )
+            );
             return Optional.of(updatedAcademicPeriod);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Error while updating academic period");
+            throw new RuntimeException("Error while updating academic period: " + e.getMessage(), e);
         }
     }
 }

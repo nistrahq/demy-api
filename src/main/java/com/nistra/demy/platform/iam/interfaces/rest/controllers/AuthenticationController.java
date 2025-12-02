@@ -5,6 +5,8 @@ import com.nistra.demy.platform.iam.interfaces.rest.resources.*;
 import com.nistra.demy.platform.iam.interfaces.rest.transform.*;
 import com.nistra.demy.platform.shared.interfaces.rest.resources.MessageResource;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -57,6 +59,16 @@ public class AuthenticationController {
         return new ResponseEntity<>(userResource, HttpStatus.CREATED);
     }
 
+    @Operation(
+            summary = "Verify user account",
+            description = "Verifies a user's account by validating the provided verification code."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User verified successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = VerifiedUserResource.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid verification code or expired", content = @Content)
+    })
     @PostMapping("/verify")
     public ResponseEntity<VerifiedUserResource> verify(@RequestBody VerifyUserResource verifyUserResource) {
         var verifyUserCommand = VerifyUserCommandFromResourceAssembler.toCommandFromResource(verifyUserResource);
@@ -68,6 +80,16 @@ public class AuthenticationController {
         return ResponseEntity.ok(verifiedUserResource);
     }
 
+    @Operation(
+            summary = "Resend verification code",
+            description = "Resends a new verification code to the user’s registered email address."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Verification code resent successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = MessageResource.class))),
+            @ApiResponse(responseCode = "400", description = "Unable to resend verification code", content = @Content)
+    })
     @PostMapping("/resend-code")
     public ResponseEntity<MessageResource> resendCode(@RequestBody ResendVerificationCodeResource resendVerificationCodeResource) {
         var resendVerificationCodeCommand = ResendVerificationCodeCommandFromResourceAssembler.toCommandFromResource(resendVerificationCodeResource);

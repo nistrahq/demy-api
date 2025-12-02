@@ -90,7 +90,7 @@ public class AcademicPeriodsController {
     })
     public ResponseEntity<List<AcademicPeriodResource>> getAllAcademicPeriods() {
         var academicPeriods = academicPeriodQueryService.handle(new GetAllAcademicPeriodsQuery());
-        if (academicPeriods.isEmpty()) return ResponseEntity.notFound().build();
+        // if (academicPeriods.isEmpty()) return ResponseEntity.notFound().build();
 
         var academicPeriodResources = academicPeriods.stream()
                 .map(AcademicPeriodResourceFromEntityAssembler::toResourceFromEntity)
