@@ -120,6 +120,40 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
+    public void handle(RequestResetPasswordCommand command) {
+        var user = userRepository.findByEmailAddress(command.emailAddress())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        var verificationCode = verificationService.generateCode();
+        user.assignNewPasswordVerificationCode(
+                command.emailAddress().email(),
+                verificationCode,
+                verificationService.generateExpirationMinutes()
+        );
+        userRepository.save(user);
+    }
+
+    @Override
+    public boolean handle(VerifyResetPasswordCodeCommand command) {
+        var user = userRepository.findByEmailAddress(command.emailAddress())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.verifyPasswordResetCode(command.code());
+        userRepository.save(user);
+        return true;
+    }
+
+    @Override
+    public Optional<ImmutablePair<User, String>> handle(ResetPasswordCommand command) {
+        var user = userRepository.findByEmailAddress(command.emailAddress())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.resetPassword(hashingService.encode(command.password()));
+        userRepository.save(user);
+
+        var token = tokenService.generateToken(user.getEmailAddress().email());
+        return Optional.of(ImmutablePair.of(user, token));
+    }
+
+    @Override
     public void handle(AssignUserTenantId command) {
         var user = userRepository.findById(command.userId())
                 .orElseThrow(() -> new UserNotFoundException(command.userId()));
