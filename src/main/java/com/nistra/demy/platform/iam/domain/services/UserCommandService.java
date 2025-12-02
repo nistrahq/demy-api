@@ -18,5 +18,11 @@ public interface UserCommandService {
 
     boolean handle(ResendVerificationCodeCommand command);
 
+    void handle(RequestResetPasswordCommand command);
+
+    boolean handle(VerifyResetPasswordCodeCommand command);
+
+    Optional<ImmutablePair<User, String>> handle(ResetPasswordCommand command);
+
     void handle(AssignUserTenantId command);
 }
