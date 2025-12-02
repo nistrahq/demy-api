@@ -19,7 +19,8 @@ public class CreateAcademicPeriodCommandFromResourceAssembler {
         return new CreateAcademicPeriodCommand(
                 resource.periodName(),
                 resource.startDate(),
-                resource.endDate()
+                resource.endDate(),
+                resource.isActive()
         );
     }
 }

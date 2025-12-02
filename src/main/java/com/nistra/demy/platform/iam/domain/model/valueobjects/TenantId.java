@@ -5,6 +5,7 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public record TenantId(
+        @Column(unique = true)
         Long tenantId
 ) {
     public TenantId() {

@@ -13,6 +13,5 @@ package com.nistra.demy.platform.iam.domain.model.valueobjects;
 public enum Roles {
     ROLE_USER,
     ROLE_ADMINISTRATOR,
-    ROLE_TEACHER,
-    ROLE_STUDENT
+    ROLE_TEACHER
 }

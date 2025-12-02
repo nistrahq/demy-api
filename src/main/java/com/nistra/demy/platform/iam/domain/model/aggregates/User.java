@@ -2,7 +2,6 @@ package com.nistra.demy.platform.iam.domain.model.aggregates;
 
 
 import com.nistra.demy.platform.iam.domain.model.entities.Role;
-import com.nistra.demy.platform.iam.domain.model.events.UserSignedUpAndActivatedEvent;
 import com.nistra.demy.platform.iam.domain.model.events.UserVerificationCodeAssignedEvent;
 import com.nistra.demy.platform.iam.domain.model.valueobjects.AccountStatus;
 import com.nistra.demy.platform.iam.domain.model.valueobjects.TenantId;
@@ -67,13 +66,6 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         addRoles(roles);
     }
 
-    public User(EmailAddress emailAddress, String password, List<Role> roles, TenantId tenantId) {
-        this(emailAddress, password, new VerificationCode(null, null), roles);
-        this.verificationStatus = VerificationStatus.VERIFIED;
-        this.accountStatus = AccountStatus.ACTIVE;
-        this.tenantId = tenantId;
-    }
-
     public User addRole(Role role) {
         this.roles.add(role);
         return this;
@@ -111,13 +103,6 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.verificationCode = new VerificationCode(null, null);
         this.verificationStatus = VerificationStatus.VERIFIED;
         this.activate();
-    }
-
-    public void notifySignedUpAndActivated(String email, String password) {
-        this.addDomainEvent(new UserSignedUpAndActivatedEvent(
-                this,
-                email,
-                password));
     }
 
     public void associateTenant(TenantId tenantId) {

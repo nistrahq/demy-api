@@ -14,8 +14,6 @@ public interface UserCommandService {
 
     Optional<ImmutablePair<User, String>> handle(VerifyUserCommand command);
 
-    Optional<User> handle(SignUpVerifiedUserCommand command);
-
     boolean handle(ResendVerificationCodeCommand command);
 
     void handle(AssignUserTenantId command);

@@ -8,10 +8,6 @@ public interface VerificationService {
 
     String generateCode(int length);
 
-    String generateRandomPassword(int length);
-
-    String generateRandomPassword();
-
     Integer generateExpirationMinutes();
 
     boolean verifyCode(String code, String expectedCode, LocalDateTime expirationTime);

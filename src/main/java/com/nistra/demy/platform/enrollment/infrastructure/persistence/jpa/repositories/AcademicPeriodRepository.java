@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface AcademicPeriodRepository extends JpaRepository<AcademicPeriod, Long> {
     boolean existsByPeriodName (String periodName);
+    Optional<AcademicPeriod> findByPeriodName (String periodName);
     boolean existsByPeriodNameAndIdIsNot(String periodName, Long id);
-    List<AcademicPeriod> findAllByAcademyId(AcademyId academyId);
 }

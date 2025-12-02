@@ -1,14 +1,11 @@
 package com.nistra.demy.platform.institution.infrastructure.persistence.jpa.repositories;
 
 import com.nistra.demy.platform.institution.domain.model.aggregates.Teacher;
-import com.nistra.demy.platform.institution.domain.model.valueobjects.UserId;
 import com.nistra.demy.platform.shared.domain.model.valueobjects.AcademyId;
-import com.nistra.demy.platform.shared.domain.model.valueobjects.PersonName;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Repository for managing Teacher entities.
@@ -31,8 +28,4 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
      * @see AcademyId
      */
     List<Teacher> findAllByAcademyId(AcademyId academyId);
-
-    Optional<Teacher> findByPersonNameAndAcademyId(PersonName fullName, AcademyId academyId);
-
-    Optional<Teacher> findByUserId(UserId userId);
 }
