@@ -1,35 +1,16 @@
 # Changelog
-All notable changes to this project will be documented here.
 
-The format follows the conventions of [Keep a Changelog](https://keepachangelog.com/)  
-and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
----
+All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Added
-- (Example) New endpoint for JWT token validation.
-- (Example) Initial deployment guide in `docs/guides/deployment.md`.
+
+## [2.3.1] - 2026-08-12
 
 ### Changed
-- (Example) Refactored `auth` module to separate controllers and services.
-- (Example) Updated `openapi.yaml` with new error codes.
 
-### Fixed
-- (Example) Fixed email validation during user registration.
-- (Example) Bug fix for `NullPointerException` handling in the `institution` module.
+- Reworked the English README and added a separate Spanish guide with current bounded contexts, local setup, verification commands, and links to the Demy ecosystem.
+- Added a curated, security-reviewed Swagger UI gallery.
+- Changed the OpenAPI server declaration to `/` so Swagger requests target the host serving the documentation in both local and deployed environments.
 
----
-
-## [X.Y.Z] - YYYY-MM-DD
-### Added
-- ...
-
-### Changed
-- ...
-
-### Fixed
-- ...
-
-### Removed
-- ...
+[Unreleased]: https://github.com/nistrahq/demy-api/compare/v2.3.1...HEAD
+[2.3.1]: https://github.com/nistrahq/demy-api/compare/v2.3.0...v2.3.1
