@@ -1,104 +1,90 @@
-# Demy API – RESTful Backend (Spring Boot)
+# Demy API
 
-This repository contains the **backend API** of the **Demy** project, developed in **Java 21 with Spring Boot**.  
-The goal is to provide RESTful services for user management, authentication, and functionalities related to the academic project.
+[English](./README.md) | [Español](./README.es.md)
 
-----
+The REST API that powers **Demy**, a multiplatform academy-management product built by [Nistra](https://github.com/nistrahq). It centralizes identity, institutions, enrollment, scheduling, attendance, billing, and accounting so the administrator, teacher, and student applications share one source of truth.
 
-## Quick Start
+## What it provides
 
-### Prerequisites
-- **Java 21**
-- **Maven Wrapper (`./mvnw`)**
-- (Optional) **Docker** if you want to run external dependencies (DB, etc.)
+- JWT-based authentication, account recovery, and role-aware access.
+- Academy, teacher, student, course, classroom, and academic-period management.
+- Enrollment and schedule workflows for administrators, teachers, and students.
+- Attendance recording and reporting.
+- Billing, transactions, financial summaries, and PDF/Excel report endpoints.
+- English and Spanish message bundles.
+- OpenAPI 3 documentation through Swagger UI.
 
-### Run locally
+## Architecture
+
+The service is built with **Java 21**, **Spring Boot**, **Spring Data JPA**, and **MySQL**. Its package structure follows Domain-Driven Design with these bounded contexts:
+
+```text
+com.nistra.demy.platform
+├── iam
+├── institution
+├── enrollment
+├── scheduling
+├── attendance
+├── billing
+├── accountingfinance
+└── shared
+```
+
+Each bounded context separates application, domain, infrastructure, and interface concerns. `shared` contains cross-cutting infrastructure rather than business ownership.
+
+## API preview
+
+![Demy API overview in Swagger UI](./docs/screenshots/swagger-overview.png)
+
+<details>
+<summary>Browse more API screenshots</summary>
+
+### Endpoint catalog
+
+![Demy API endpoint catalog](./docs/screenshots/swagger-endpoints.png)
+
+### Student schedule request
+
+![Student schedule request in Swagger UI](./docs/screenshots/swagger-schedule-by-student.png)
+
+</details>
+
+## Run locally
+
+### Requirements
+
+- JDK 21
+- MySQL 8+
+- The included Maven Wrapper
+
+Configure the variables referenced by `application.properties` and `application-dev.properties`, including the database connection, JWT settings, documentation contact, and mail sender. Then run:
+
 ```bash
-# Clone repository
-git clone https://github.com/<org>/<repo>.git
-cd <repo>
-
-# Run with Maven
-./mvnw spring-boot:run
+SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 ```
 
-The API will be available at: `http://localhost:8080`
+The default local endpoints are:
 
----
+- API: `http://localhost:8080/api/v1`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI document: `http://localhost:8080/v3/api-docs`
 
-## Main structure
-- `src/main/java` → application source code.
-- `src/test/java` → unit and integration tests.
-- `docs/` → extended documentation (architecture, ADRs, API, diagrams, guides).
-- `CONTRIBUTING.md` → contribution rules (commits, branches, PRs, code style).
+Swagger advertises a relative server URL, so requests stay on the host that served the documentation.
 
----
+## Verification
 
-## Architecture – Domain-Driven Design (DDD)
-
-The project follows **Domain-Driven Design (DDD)** principles adapted to an academic context.
-
-- Each **module** corresponds to a **bounded context**, with its own logic, models, and layers.
-- Example modules:
-    - `iam`: identity and access management
-    - `institution`: institution management
-- The `shared` module contains **common components** (e.g., exceptions, utilities) and is not considered a bounded context.
-
-Each context follows a layered architecture pattern:
-
-```
-institution/
-├─ application/       # Use cases (services)
-├─ domain/            # Domain models
-├─ infrastructure/    # Technical implementations (repositories, external services)
-└─ interfaces/        # REST controllers, mappers
+```bash
+./mvnw test
+./mvnw package
 ```
 
-An example of the **domain model** for the `institution` context:
+Integration tests require a valid MySQL test configuration.
 
-![Domain-model-diagram](https://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/nistrahq/demy-api/refs/heads/feature/project-documentation/docs/diagrams/plantuml/domain-model-diagram.puml?token=GHSAT0AAAAAAC6GPIH5NCWVSIQRCHU4JC562FUQIMA)
+## Demy ecosystem
 
-For more details, see the complete **domain diagrams** in [`docs/diagrams/`](./docs/diagrams/).
+- [Landing page](https://github.com/nistrahq/demy-landing)
+- [Administrator app](https://github.com/nistrahq/demy-admins)
+- [Teacher app](https://github.com/nistrahq/demy-teachers)
+- [Student app](https://github.com/nistrahq/demy-students)
 
----
-
-## Documentation
-Detailed documentation can be found in [`docs/`](./docs/):
-
-- **Quick guides** → [`docs/guides/`](./docs/guides/)
-- **API** (endpoints, OpenAPI, examples) → [`docs/api/`](./docs/api/)
-- **Architecture and diagrams** → [`docs/architecture/`](./docs/architecture/)
-- **Conventions and references** → [`docs/references/`](./docs/references/)
-
----
-
-## Workflow
-- Main branches:
-    - `main` → stable releases (e.g., TB1, TP1, TB2, TF1).
-    - `develop` → integration of new features.
-- Support branches:
-    - `feature/<topic>` → new features or improvements.
-    - `hotfix/<topic>` → critical fixes in production.
-    - `release/vX.Y.Z` → release preparation (we use **Semantic Versioning**).
-
-More details in: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
-
----
-
-## Quick checklist for developers
-- Configure UTF-8 in your IDE (IntelliJ: *Settings > Editor > File Encodings > UTF-8*).
-- Follow the code style defined in the contributors guide [CONTRIBUTING.md](./CONTRIBUTING.md).
-- Use commit messages with **Conventional Commits**.
-- Run tests before opening a PR:
-  ```bash
-  ./mvnw verify
-  ```
-
----
-
-## Project status
-This is an **academic and private** project, developed by the Software Engineering team – UPC.  
-External contributions are not accepted.
-
----
-
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the Git workflow and coding conventions.
