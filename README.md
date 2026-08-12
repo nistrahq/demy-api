@@ -2,6 +2,8 @@
 
 [English](./README.md) | [Español](./README.es.md)
 
+![Java 21](https://img.shields.io/badge/Java_21-ED8B00?logo=openjdk&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?logo=springboot&logoColor=white) ![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)
+
 The REST API that powers **Demy**, a multiplatform academy-management product built by [Nistra](https://github.com/nistrahq). It centralizes identity, institutions, enrollment, scheduling, attendance, billing, and accounting so the administrator, teacher, and student applications share one source of truth.
 
 ## What it provides
