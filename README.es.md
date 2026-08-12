@@ -2,6 +2,8 @@
 
 [English](./README.md) | [Español](./README.es.md)
 
+![Java 21](https://img.shields.io/badge/Java_21-ED8B00?logo=openjdk&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?logo=springboot&logoColor=white) ![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)
+
 La API REST que impulsa **Demy**, un producto multiplataforma para la gestión de academias creado por [Nistra](https://github.com/nistrahq). Centraliza identidad, instituciones, matrículas, horarios, asistencia, facturación y contabilidad para que las aplicaciones de administradores, docentes y estudiantes compartan una única fuente de información.
 
 ## Qué ofrece
